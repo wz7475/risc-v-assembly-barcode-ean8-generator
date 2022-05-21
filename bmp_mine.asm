@@ -29,6 +29,8 @@
 .eqv stripes_per_char 11
 .eqv pixels_per_stripe 4
 
+.eqv BYTES_PER_ROW 192
+
 	.data
 imgInfo: .space	24	# deskryptor obrazu
 
@@ -39,8 +41,9 @@ bmpHeader:	.space	BMPHeader_Size
 	.align 2
 imgData: 	.space	MAX_IMG_SIZE
 
-text_to_code: .asciz "12345678ab"
-input_file_name:	.asciz "img/white400x100.bmp"
+text_to_code: .asciz "12345678a"
+# check if file hsa 24 color depth
+input_file_name:	.asciz "img/white80x80.bmp"
 output_file_name: .asciz "result.bmp"
 
 	.text
@@ -64,14 +67,22 @@ main:
 	li a7, 1
 	ecall
 
+	# #put red pixel 
+	la a0, imgInfo	
+	li	a1, 20		#x
+	li	a2, 20		#y
+	li 	a3, 0x00FF0000	#color - 00RRGGBB
+	jal	set_pixel
+
+
 	
 	# la a0, imgInfo
 	# jal invert_red
 
-	# la a0, imgInfo
-	# la t0, output_file_name
-	# sw t0, ImgInfo_file_name(a0)
-	# jal save_bmp
+	la a0, imgInfo
+	la t0, output_file_name
+	sw t0, ImgInfo_file_name(a0)
+	jal save_bmp
 
 main_failure:
 	li a7, 10
@@ -296,6 +307,39 @@ get_pixel:
 #     rgb = (rgb & 0x0000FFFF) | (0x00FF0000 - (rgb & 0x00FF0000));
 #     set_pixel(imgInfo, x, y, rgb);
 #   }
+
+# put_pixel:
+# #description: 
+# #	sets the color of specified pixel
+# #arguments:
+# #	a0 - x coordinate
+# #	a1 - y coordinate - (0,0) - bottom left corner
+# #	a2 - 0RGB - pixel color
+# #return value: none
+
+# 	la t1, imgData	#adress of file offset to pixel array
+# 	addi t1,t1,10	# pixels are stored with 10 bit offset
+# 	lw t2, (t1)		#file offset to pixel array in $t2
+# 	la t1, imgData		#adress of bitmap
+# 	add t2, t1, t2	#adress of pixel array in $t2
+	
+# 	#pixel address calculation
+# 	li t4,BYTES_PER_ROW
+# 	mul t1, a1, t4 #t1= y*BYTES_PER_ROW
+# 	mv t3, a0		
+# 	slli a0, a0, 1
+# 	add t3, t3, a0	#$t3= 3*x
+# 	add t1, t1, t3	#$t1 = 3x + y*BYTES_PER_ROW
+# 	add t2, t2, t1	#pixel address 
+	
+# 	#set new color
+# 	sb a2,(t2)		#store B
+# 	srli a2,a2,8
+# 	sb a2,1(t2)		#store G
+# 	srli a2,a2,8
+# 	sb a2,2(t2)		#store R
+
+# 	jr ra
 
 invert_red:
 	addi sp, sp, -8

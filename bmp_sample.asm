@@ -44,7 +44,7 @@ bmpHeader:	.space	BMPHeader_Size
 	.align 2
 imgData: 	.space	MAX_IMG_SIZE
 
-input_file_name:	.asciz "orange_and_black.bmp"
+input_file_name:	.asciz "img/orange_and_black.bmp"
 output_file_name: .asciz "result.bmp"
 
 	.text
@@ -62,6 +62,12 @@ main:
 	
 	la a0, imgInfo
 	jal invert_red
+
+	# put red pixel
+	li	a1, 20		#x
+	li	a2, 20		#y
+	li 	a3, 0x00FF0000	#color - 00RRGGBB
+	jal	set_pixel
 
 	la a0, imgInfo
 	la t0, output_file_name
