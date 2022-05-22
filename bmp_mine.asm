@@ -195,6 +195,7 @@ main:
 
 	
 	la a0, imgInfo
+	li a3, 32
 	jal invert_red_stripped_stripped
 
 	la a0, imgInfo
@@ -448,42 +449,27 @@ get_pixel:
 #     set_pixel(imgInfo, x, y, rgb);
 #   }
 invert_red_stripped_stripped:
-	addi sp, sp, -8
-	sw ra, 4(sp)		#push ra
-	sw s1, 0(sp)		#push s1
-	mv s1, a0 			#preserve imgInfo for further use
+	# a3 - offset from the end
+	addi sp, sp, -4
+	sw ra, 0(sp)		#push ra
 	
 	lw a2, ImgInfo_height(a0)
 	addi a2, a2, -1		
 
-	mv t6, zero
-	
-paint_vertical_line:
+	# a1 - address of right-most pixel
 	lw a1, ImgInfo_width(a0)
-	# li a1, 64
 	addi a1, a1, -1
-	
-# paint_pixel:	
-	# restore file handle
-	# mv a0, s1
-	# a0 - file, handle, a1, a2 - coordinates
+	sub a1, a1, a3
+paint_vertical_line:
 
-	# beqz t6, skip_label
 	jal set_pixel_black
 
-# skip_label:
-	# not t6, t6
-	# a1 - x coordinate
-	# addi a1, a1, -1
-	# bge a1, zero, paint_pixel # horizontal loop
-	
-	# a2 - y coordinate
 	addi a2, a2, -1
 	bge a2, zero, paint_vertical_line # vertical loop
 	
-	lw s1, 0(sp)		#pop s1
-	lw ra, 4(sp)		#pop ra
-	addi sp, sp, 8
+
+	lw ra, 0(sp)		#pop ra
+	addi sp, sp, 4
 	jr ra
 
 
