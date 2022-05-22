@@ -468,7 +468,21 @@ get_code_value:
 	la t0, codes_table
 	slli a0, a0, 1 # index * 2 (halfword - 2 bytes)
 	add t0, t0, a0
-	lh a0, (t0)
-	andi a0, a0, 1
+	lh t1, (t0)
+
+	# loop - read 11 bits
+	li t0, 10
+	li a7, 1 # to delete after calling own function
+bits_loop:
+	andi a0, t1, 1
+
+	# to swap with set black_white
+	ecall
+
+	addi t0, t0, -1 # counter--
+	
+	srli t1, t1, 1
+	bnez t0, bits_loop
+
 	jr ra
 	
