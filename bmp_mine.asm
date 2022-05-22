@@ -145,12 +145,12 @@ bmpHeader:	.space	BMPHeader_Size
 	.align 2
 imgData: 	.space	MAX_IMG_SIZE
 
-value: .word 22
+value: .word 0x12345678
 
-text_to_code: .asciz "12345678a"
+text_to_code: .asciz "12345678"
 # check if file hsa 24 color depth
 input_file_name:	.asciz "img/white80x80.bmp"
-output_file_name: .asciz "result.bmp"
+output_file_name: .asciz "img/result.bmp"
 
 	.text
 main:
@@ -166,15 +166,13 @@ main:
 	jal	read_bmp
 	bnez a0, main_failure
 
-	li a0, 1
-	jal get_code_value
-	li a7, 1
-	ecall
-	# la t0, codes_table
-	# addi t0, t0, 2
-	# lh a0, (t0)
+	# li a0, 1
+	# jal get_code_value
 	# li a7, 1
 	# ecall
+
+
+	jal go_throuth_text
 
 	# jal validate_width
 	# li a7, 1
@@ -486,3 +484,39 @@ bits_loop:
 
 	jr ra
 	
+
+
+go_throuth_text:
+	la t0, text_to_code
+text_lopp:
+	lb t1, (t0)
+	addi t0, t0, 1
+	
+	bnez t1, text_lopp
+	
+	addi t0, t0, -2
+	# now we have pointer for last character
+
+
+	# unit part
+	lb t1, (t0)
+	addi t1, t1, -48
+	
+	# decimal part
+	addi t0, t0, -1
+	lb t2, (t0)
+	addi t2, t2, -48
+	li t3, 10
+	mul t2, t2, t3
+	
+	# sum
+	add a0, t1, t2
+	li a7, 1
+	ecall
+
+
+	jr ra
+
+	# addi a0, a0, -48
+	# li a7, 1
+	# ecall
