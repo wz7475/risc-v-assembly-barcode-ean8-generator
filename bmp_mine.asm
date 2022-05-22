@@ -195,7 +195,7 @@ main:
 
 	
 	la a0, imgInfo
-	jal invert_red
+	jal invert_red_stripped_stripped
 
 	la a0, imgInfo
 	la t0, output_file_name
@@ -434,7 +434,7 @@ get_pixel:
 # ============================================================================
 
 # ============================================================================
-# invert_red - inverts red component in the input image
+# invert_red_stripped_stripped - inverts red component in the input image
 #arguments:
 #	a0 - address of ImgInfo image descriptor
 #return value:
@@ -447,7 +447,7 @@ get_pixel:
 #     rgb = (rgb & 0x0000FFFF) | (0x00FF0000 - (rgb & 0x00FF0000));
 #     set_pixel(imgInfo, x, y, rgb);
 #   }
-invert_red:
+invert_red_stripped_stripped:
 	addi sp, sp, -8
 	sw ra, 4(sp)		#push ra
 	sw s1, 0(sp)		#push s1
@@ -455,6 +455,8 @@ invert_red:
 	
 	lw a2, ImgInfo_height(a0)
 	addi a2, a2, -1		
+
+	mv t6, zero
 	
 invert_line:
 	lw a1, ImgInfo_width(a0)
@@ -477,8 +479,12 @@ invert_pixel:
 	# restore file handle
 	mv a0, s1
 	# a0 - file, handle, a1, a2 - coordinates
+
+	beqz t6, skip_label
 	jal set_pixel
-	
+
+skip_label:
+	not t6, t6
 	# a1 - x coordinate
 	addi a1, a1, -1
 	bge a1, zero, invert_pixel # horizontal loop
