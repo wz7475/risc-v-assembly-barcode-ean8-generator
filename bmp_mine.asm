@@ -462,20 +462,7 @@ invert_line:
 	lw a1, ImgInfo_width(a0)
 	addi a1, a1, -1
 	
-invert_pixel:
-	jal get_pixel
-	# in a0 is pixel color
-
-	# mask and color operations
-	lui t0, 0x00FF0
-	and a3, a0, t0
-	sub a3, t0, a3
-	
-	# mask, color ...
-	slli a0, a0, 16
-	srli a0, a0, 16
-	or a3, a3, a0
-	
+invert_pixel:	
 	# restore file handle
 	mv a0, s1
 	# a0 - file, handle, a1, a2 - coordinates
