@@ -481,7 +481,7 @@ invert_pixel:
 	# a0 - file, handle, a1, a2 - coordinates
 
 	beqz t6, skip_label
-	jal set_pixel
+	jal set_pixel_black
 
 skip_label:
 	not t6, t6
