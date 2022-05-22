@@ -150,7 +150,7 @@ value: .word 0x12345678
 
 text_to_code: .asciz "12345678"
 # check if file hsa 24 color depth
-input_file_name:	.asciz "img/white80x80.bmp"
+input_file_name:	.asciz "img/orange_and_black.bmp"
 output_file_name: .asciz "img/result.bmp"
 
 	.text
@@ -180,22 +180,22 @@ main:
 	# ecall
 
 	# #put black pixel 
-	la a0, imgInfo	
-	li	a1, 20		#x
-	li	a2, 20		#y
-	jal	set_pixel_black
+	# la a0, imgInfo	
+	# li	a1, 20		#x
+	# li	a2, 20		#y
+	# jal	set_pixel_black
 
 	# #put red pixel 
-	la a0, imgInfo	
-	li	a1, 22		#x
-	li	a2, 22		#y
-	li 	a3, 0x00FF0000	#color - 00RRGGBB
-	jal	set_pixel
+	# la a0, imgInfo	
+	# li	a1, 22		#x
+	# li	a2, 22		#y
+	# li 	a3, 0x00FF0000	#color - 00RRGGBB
+	# jal	set_pixel
 
 
 	
-	# la a0, imgInfo
-	# jal invert_red
+	la a0, imgInfo
+	jal invert_red
 
 	la a0, imgInfo
 	la t0, output_file_name
@@ -462,23 +462,30 @@ invert_line:
 	
 invert_pixel:
 	jal get_pixel
-	
+	# in a0 is pixel color
+
+	# mask and color operations
 	lui t0, 0x00FF0
 	and a3, a0, t0
 	sub a3, t0, a3
 	
+	# mask, color ...
 	slli a0, a0, 16
 	srli a0, a0, 16
 	or a3, a3, a0
 	
+	# restore file handle
 	mv a0, s1
+	# a0 - file, handle, a1, a2 - coordinates
 	jal set_pixel
 	
+	# a1 - x coordinate
 	addi a1, a1, -1
-	bge a1, zero, invert_pixel
+	bge a1, zero, invert_pixel # horizontal loop
 	
+	# a2 - y coordinate
 	addi a2, a2, -1
-	bge a2, zero, invert_line
+	bge a2, zero, invert_line # vertical loop
 	
 	lw s1, 0(sp)		#pop s1
 	lw ra, 4(sp)		#pop ra
