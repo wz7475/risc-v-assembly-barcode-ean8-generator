@@ -458,27 +458,28 @@ invert_red_stripped_stripped:
 
 	mv t6, zero
 	
-invert_line:
+paint_vertical_line:
 	lw a1, ImgInfo_width(a0)
+	# li a1, 64
 	addi a1, a1, -1
 	
-invert_pixel:	
+# paint_pixel:	
 	# restore file handle
-	mv a0, s1
+	# mv a0, s1
 	# a0 - file, handle, a1, a2 - coordinates
 
-	beqz t6, skip_label
+	# beqz t6, skip_label
 	jal set_pixel_black
 
-skip_label:
-	not t6, t6
+# skip_label:
+	# not t6, t6
 	# a1 - x coordinate
-	addi a1, a1, -1
-	bge a1, zero, invert_pixel # horizontal loop
+	# addi a1, a1, -1
+	# bge a1, zero, paint_pixel # horizontal loop
 	
 	# a2 - y coordinate
 	addi a2, a2, -1
-	bge a2, zero, invert_line # vertical loop
+	bge a2, zero, paint_vertical_line # vertical loop
 	
 	lw s1, 0(sp)		#pop s1
 	lw ra, 4(sp)		#pop ra
