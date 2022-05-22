@@ -145,6 +145,8 @@ bmpHeader:	.space	BMPHeader_Size
 	.align 2
 imgData: 	.space	MAX_IMG_SIZE
 
+value: .word 22
+
 text_to_code: .asciz "12345678a"
 # check if file hsa 24 color depth
 input_file_name:	.asciz "img/white80x80.bmp"
@@ -164,29 +166,36 @@ main:
 	jal	read_bmp
 	bnez a0, main_failure
 
-
-
-
-	jal validate_width
+	li a0, 1
+	jal get_code_value
 	li a7, 1
 	ecall
+	# la t0, codes_table
+	# addi t0, t0, 2
+	# lh a0, (t0)
+	# li a7, 1
+	# ecall
 
-	# #put red pixel 
-	la a0, imgInfo	
-	li	a1, 20		#x
-	li	a2, 20		#y
-	li 	a3, 0x00FF0000	#color - 00RRGGBB
-	jal	set_pixel
+	# jal validate_width
+	# li a7, 1
+	# ecall
+
+	# # #put red pixel 
+	# la a0, imgInfo	
+	# li	a1, 20		#x
+	# li	a2, 20		#y
+	# li 	a3, 0x00FF0000	#color - 00RRGGBB
+	# jal	set_pixel
 
 
 	
-	# la a0, imgInfo
-	# jal invert_red
+	# # la a0, imgInfo
+	# # jal invert_red
 
-	la a0, imgInfo
-	la t0, output_file_name
-	sw t0, ImgInfo_file_name(a0)
-	jal save_bmp
+	# la a0, imgInfo
+	# la t0, output_file_name
+	# sw t0, ImgInfo_file_name(a0)
+	# jal save_bmp
 
 main_failure:
 	li a7, 10
@@ -364,7 +373,7 @@ set_pixel:
 
 	jr ra
 
-set_pixel_white_black:
+
 
 
 # ============================================================================
@@ -485,3 +494,14 @@ invert_pixel:
 	lw ra, 4(sp)		#pop ra
 	addi sp, sp, 8
 	jr ra
+
+
+get_code_value:
+	# a0 - input - index of the code value
+	# a0 - output - loaded value 
+	la t0, codes_table
+	slli a0, a0, 1 # index * 2 (halfword - 2 bytes)
+	add t0, t0, a0
+	lh a0, (t0)
+	jr ra
+	
