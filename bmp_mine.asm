@@ -423,40 +423,6 @@ get_pixel:
 #     rgb = (rgb & 0x0000FFFF) | (0x00FF0000 - (rgb & 0x00FF0000));
 #     set_pixel(imgInfo, x, y, rgb);
 #   }
-
-# put_pixel:
-# #description: 
-# #	sets the color of specified pixel
-# #arguments:
-# #	a0 - x coordinate
-# #	a1 - y coordinate - (0,0) - bottom left corner
-# #	a2 - 0RGB - pixel color
-# #return value: none
-
-# 	la t1, imgData	#adress of file offset to pixel array
-# 	addi t1,t1,10	# pixels are stored with 10 bit offset
-# 	lw t2, (t1)		#file offset to pixel array in $t2
-# 	la t1, imgData		#adress of bitmap
-# 	add t2, t1, t2	#adress of pixel array in $t2
-	
-# 	#pixel address calculation
-# 	li t4,BYTES_PER_ROW
-# 	mul t1, a1, t4 #t1= y*BYTES_PER_ROW
-# 	mv t3, a0		
-# 	slli a0, a0, 1
-# 	add t3, t3, a0	#$t3= 3*x
-# 	add t1, t1, t3	#$t1 = 3x + y*BYTES_PER_ROW
-# 	add t2, t2, t1	#pixel address 
-	
-# 	#set new color
-# 	sb a2,(t2)		#store B
-# 	srli a2,a2,8
-# 	sb a2,1(t2)		#store G
-# 	srli a2,a2,8
-# 	sb a2,2(t2)		#store R
-
-# 	jr ra
-
 invert_red:
 	addi sp, sp, -8
 	sw ra, 4(sp)		#push ra
@@ -503,5 +469,6 @@ get_code_value:
 	slli a0, a0, 1 # index * 2 (halfword - 2 bytes)
 	add t0, t0, a0
 	lh a0, (t0)
+	andi a0, a0, 1
 	jr ra
 	
