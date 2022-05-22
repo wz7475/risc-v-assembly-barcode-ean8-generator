@@ -32,7 +32,8 @@
 .eqv BYTES_PER_ROW 192
 
 	.data
-
+start_symbol: .half 0x69c
+stop_symbol: .half 0x63a
 codes_table: .half 
 	0x6cc,
 	0x66c,
