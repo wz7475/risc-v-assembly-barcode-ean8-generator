@@ -495,30 +495,31 @@ text_lopp:
 	bnez t1, text_lopp
 	
 	addi t0, t0, -2
-	addi t1, t1, -1
-	# t0 pointer for last character
-	# t1 - length
+	# now we have pointer for last character
+	la t4, text_to_code
+	sub t4, t0, t4
+	addi t4, t4, 1
 
 read_pairs:
 	# unit part
-	lb t3, (t0)
-	addi t3, t3, -48
+	lb t1, (t0)
+	addi t1, t1, -48
 	
 	# decimal part
 	addi t0, t0, -1
 	lb t2, (t0)
 	addi t2, t2, -48
-	li t4, 10
-	mul t2, t2, t4
+	li t3, 10
+	mul t2, t2, t3
 	
 	# sum
-	add a0, t3, t2
+	add a0, t1, t2
 	li a7, 1
 	ecall
 
+	# loop commands
+	addi t0, t0, -1
+	addi t4, t4, -2
+	bnez t4, read_pairs
 
 	jr ra
-
-	# addi a0, a0, -48
-	# li a7, 1
-	# ecall
