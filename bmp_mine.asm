@@ -172,28 +172,34 @@ main:
 	# ecall
 
 
-	jal go_throuth_text
+	# jal go_throuth_text
 
 	# jal validate_width
 	# li a7, 1
 	# ecall
 
-	# # #put red pixel 
-	# la a0, imgInfo	
-	# li	a1, 20		#x
-	# li	a2, 20		#y
-	# li 	a3, 0x00FF0000	#color - 00RRGGBB
-	# jal	set_pixel
+	# #put black pixel 
+	la a0, imgInfo	
+	li	a1, 20		#x
+	li	a2, 20		#y
+	jal	set_pixel_black
+
+	# #put red pixel 
+	la a0, imgInfo	
+	li	a1, 22		#x
+	li	a2, 22		#y
+	li 	a3, 0x00FF0000	#color - 00RRGGBB
+	jal	set_pixel
 
 
 	
-	# # la a0, imgInfo
-	# # jal invert_red
-
 	# la a0, imgInfo
-	# la t0, output_file_name
-	# sw t0, ImgInfo_file_name(a0)
-	# jal save_bmp
+	# jal invert_red
+
+	la a0, imgInfo
+	la t0, output_file_name
+	sw t0, ImgInfo_file_name(a0)
+	jal save_bmp
 
 main_failure:
 	li a7, 10
@@ -371,6 +377,25 @@ set_pixel:
 
 	jr ra
 
+set_pixel_black:
+	lw t1, ImgInfo_line_bytes(a0)
+	mul t1, t1, a2  # t1 = y * linebytes
+	add t0, a1, a1
+	add t0, t0, a1 	# t0 = x * 3
+	add t0, t0, t1  # t0 is offset of the pixel
+
+	lw t1, ImgInfo_img_begin_ptr(a0) # address of image data
+	add t0, t0, t1 	# t0 is address of the pixel
+	
+	li t3, 0x00000000
+	#set new color
+	sb   t3,(t0)		#store B
+	srli t3, t3, 8
+	sb   t3, 1(t0)		#store G
+	srli t3, t3, 8
+	sb   t3, 2(t0)		#store R
+
+	jr ra
 
 
 
