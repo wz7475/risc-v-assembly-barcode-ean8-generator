@@ -14,7 +14,9 @@
 .eqv ImgInfo_height	16
 .eqv ImgInfo_line_bytes	20
 # .eqv MAX_IMG_SIZE 	1201222 # 400 X 100 x 3 (piksele)
-.eqv MAX_IMG_SIZE 211592 # 768 x 48 
+.eqv MAX_IMG_SIZE 211592 # 768 x 48 - zapas
+# .eqv MAX_IMG_SIZE 110592 # 768 x 48 black area
+# .eqv MAX_IMG_SIZE 110646  # 768 x 48 error - error
 .eqv BMPHeader_Size 54
 .eqv BMPHeader_width 18
 .eqv BMPHeader_height 22
