@@ -282,25 +282,6 @@ wb_error:
 	li a0, 2 # error writing file
 	jr ra
 
-set_pixel_black:
-	lw t1, ImgInfo_line_bytes(a0)
-	mul t1, t1, a2  # t1 = y * linebytes
-	add t0, a1, a1
-	add t0, t0, a1 	# t0 = x * 3
-	add t0, t0, t1  # t0 is offset of the pixel
-
-	lw t1, ImgInfo_img_begin_ptr(a0) # address of image data
-	add t0, t0, t1 	# t0 is address of the pixel
-	
-	li t3, 0x00000000
-	#set new color
-	sb   t3,(t0)		#store B
-	srli t3, t3, 8
-	sb   t3, 1(t0)		#store G
-	srli t3, t3, 8
-	sb   t3, 2(t0)		#store R
-
-	jr ra
 
 # paint_stripe - paint vertical stripe
 	#arguments:
@@ -317,8 +298,8 @@ set_pixel_black:
 	#   }
 paint_stripe:
 	# a3 - offset from the end - input, 
-	addi sp, sp, -4
-	sw ra, 0(sp)		#push ra
+	# addi sp, sp, -4
+	# sw ra, 0(sp)		#push ra
 
 	la t6, pixels_per_stripe
 	lb t6, (t6)
@@ -339,7 +320,23 @@ width_loop:
 	# sub a1, a1, t6
 vertical_loop:
 
-	jal set_pixel_black
+	# set pixel black
+	lw t1, ImgInfo_line_bytes(a0)
+	mul t1, t1, a2  # t1 = y * linebytes
+	add t0, a1, a1
+	add t0, t0, a1 	# t0 = x * 3
+	add t0, t0, t1  # t0 is offset of the pixel
+
+	lw t1, ImgInfo_img_begin_ptr(a0) # address of image data
+	add t0, t0, t1 	# t0 is address of the pixel
+	
+	li t3, 0x00000000
+	#set new color
+	sb   t3,(t0)		#store B
+	srli t3, t3, 8
+	sb   t3, 1(t0)		#store G
+	srli t3, t3, 8
+	sb   t3, 2(t0)		#store R
 
 	addi a2, a2, -1
 	bge a2, zero, vertical_loop # vertical loop
@@ -348,8 +345,8 @@ vertical_loop:
 	addi a3, a3, -1
 	bge t6, zero, width_loop
 	
-	lw ra, 0(sp)		#pop ra
-	addi sp, sp, 4
+	# lw ra, 0(sp)		#pop ra
+	# addi sp, sp, 4
 	jr ra
 
 
