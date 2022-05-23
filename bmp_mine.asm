@@ -185,6 +185,19 @@ main:
 
 	li a4, 10
 	li a3, 400
+	
+	# prepare paint_stripe call
+	la s2, pixels_per_stripe
+	lb s2, (s2)
+
+	lw s0, ImgInfo_height(a0)
+	addi s0, s0, -1
+
+	lw s1, ImgInfo_width(a0)
+	addi s1, s1, -1
+
+	lw s4, ImgInfo_img_begin_ptr(a0) # address of image data
+	lw s3, ImgInfo_line_bytes(a0)
 # loop:
 	
 	jal paint_stripe
@@ -301,34 +314,22 @@ paint_stripe:
 	# addi sp, sp, -4
 	# sw ra, 0(sp)		#push ra
 
-	la t6, pixels_per_stripe
-	lb t6, (t6)
 
-	lw s0, ImgInfo_height(a0)
-	addi s0, s0, -1
-
-	lw s1, ImgInfo_width(a0)
-	addi s1, s1, -1
 
 width_loop:
 	mv a2, s0	
-
-	# a1 - address of right-most pixel
-	mv a1, s1
+	mv a1, s1	# a1 - address of right-most pixel
 	sub a1, a1, a3
-	# addi a1, a1, 1
-	# sub a1, a1, t6
-vertical_loop:
 
-	# set pixel black
-	lw t1, ImgInfo_line_bytes(a0)
+vertical_loop:
+	mv t1, s3
 	mul t1, t1, a2  # t1 = y * linebytes
 	add t0, a1, a1
 	add t0, t0, a1 	# t0 = x * 3
-	add t0, t0, t1  # t0 is offset of the pixel
+	add t0, t0, t1  # t0 is offset of given pixel
 
-	lw t1, ImgInfo_img_begin_ptr(a0) # address of image data
-	add t0, t0, t1 	# t0 is address of the pixel
+	
+	add t0, t0, s4 	# t0 is address of the pixel
 	
 	li t3, 0x00000000
 	#set new color
@@ -341,12 +342,10 @@ vertical_loop:
 	addi a2, a2, -1
 	bge a2, zero, vertical_loop # vertical loop
 
-	addi t6, t6, -1
+	addi s2, s2, -1
 	addi a3, a3, -1
-	bge t6, zero, width_loop
+	bge s2, zero, width_loop
 	
-	# lw ra, 0(sp)		#pop ra
-	# addi sp, sp, 4
 	jr ra
 
 
