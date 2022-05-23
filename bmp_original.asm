@@ -58,7 +58,7 @@ main:
 	sw t0, ImgInfo_hdrdat(a0)
 	la t0, imgData
 	sw t0, ImgInfo_imdat(a0)
-	jal	read_bmp
+	jal	generate_bmp
 	# bnez a0, main_failure
 	
 	# la a0, imgInfo
@@ -73,7 +73,7 @@ main_failure:
 	li a7, 10
 	ecall
 
-read_bmp:
+generate_bmp:
 	mv t0, a0	# preserve imgInfo structure pointer
 	
 #open file					# save file handle for the future

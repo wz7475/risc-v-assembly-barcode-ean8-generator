@@ -13,7 +13,8 @@
 .eqv ImgInfo_width	12
 .eqv ImgInfo_height	16
 .eqv ImgInfo_line_bytes	20
-.eqv MAX_IMG_SIZE 	1201222 # 400 X 100 x 3 (piksele) + header 
+# .eqv MAX_IMG_SIZE 	1201222 # 400 X 100 x 3 (piksele)
+.eqv MAX_IMG_SIZE 110592 # 768 x 48 
 .eqv BMPHeader_Size 54
 .eqv BMPHeader_width 18
 .eqv BMPHeader_height 22
@@ -151,7 +152,7 @@ value: .word 0x12345678
 text_to_code: .asciz "12345678"
 # check if file hsa 24 color depth
 input_file_name:	.asciz "img/orange_and_black.bmp"
-output_file_name: .asciz "img/result.bmp"
+output_file_name: .asciz "result.bmp"
 
 	.text
 main:
@@ -164,8 +165,7 @@ main:
 	la t0, imgData
 	sw t0, ImgInfo_img_begin_ptr(a0) 
 
-	jal	read_bmp
-	bnez a0, main_failure
+	jal	generate_bmp
 
 	# li a0, 1
 	# jal get_code_value
@@ -535,4 +535,70 @@ read_pairs:
 	addi t4, t4, -2
 	bnez t4, read_pairs
 
+	jr ra
+
+generate_bmp:
+	mv t0, a0	# preserve imgInfo structure pointer
+	
+#open file					# save file handle for the future
+	
+	mv a1, t0
+	addi a1, a1, 12
+	
+	li t3, 768 #width
+	sw t3, (a1)
+	addi a1, a1, 4
+	
+	li t2, 64 #height
+	sw t2, (a1)
+	addi a1, a1, 4
+	
+	li t2, 0x900 #2304 = 48 * 48
+	sw t2, (a1)
+	addi a1, a1, 4
+	
+	li t2, 0x4d420000 # 1 296 171 008 ??
+	sw t2, (a1)
+	addi a1, a1, 4
+	
+	li t2, 0x00024036 # 147 510
+	sw t2, (a1)
+	addi a1, a1, 8
+	
+	li t2, 0x36 # 54 - head size
+	sw t2, (a1)
+	addi a1, a1, 4
+	
+	li t2, 0x28 # 40
+	sw t2, (a1)
+	addi a1, a1, 4
+	
+	li t2, 0x300 
+	sw t2, (a1)
+	addi a1, a1, 4
+	
+	li t2, 0x40
+	sw t2, (a1)
+	addi a1, a1, 4
+	
+	li t2, 0x180001
+	sw t2, (a1)
+	addi a1, a1, 8
+	
+	li t2, 0x24000
+	sw t2, (a1)
+	addi a1, a1, 20
+	
+
+
+	li t3, MAX_IMG_SIZE
+	li t2, 0xffffffff
+fill_bmp_loop:
+	beqz t3, fill_exit
+	addi t3, t3, -4
+	sw t2, (a1)
+	addi a1, a1, 4
+	b fill_bmp_loop
+
+fill_exit:
 	jr ra
