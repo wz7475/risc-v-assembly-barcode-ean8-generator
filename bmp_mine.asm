@@ -147,18 +147,15 @@ bmpHeader:	.space	BMPHeader_Size
 	.align 2
 imgData: 	.space	MAX_IMG_SIZE
 
-value: .word 0x12345678
 
 text_to_code: .asciz "12345678"
-# check if file hsa 24 color depth
-input_file_name:	.asciz "img/orange_and_black.bmp"
 output_file_name: .asciz "result.bmp"
 
 	.text
 main:
 	# wypełnienie deskryptora obrazu
 	la a0, imgInfo  
-	la t0, input_file_name 
+	la t0, output_file_name 
 	sw t0, ImgInfo_file_name(a0) # store word
 	la t0, bmpHeader
 	sw t0, ImgInfo_header_bufor(a0)
@@ -179,93 +176,18 @@ main:
 	# li a7, 1
 	# ecall
 
-	# #put black pixel 
-	# la a0, imgInfo	
-	# li	a1, 20		#x
-	# li	a2, 20		#y
-	# jal	set_pixel_black
-
-	# #put red pixel 
-	# la a0, imgInfo	
-	# li	a1, 22		#x
-	# li	a2, 22		#y
-	# li 	a3, 0x00FF0000	#color - 00RRGGBB
-	# jal	set_pixel
-
-
 	
 	la a0, imgInfo
 	li a3, 32
-	jal invert_red_stripped_stripped
+	jal paint_stripe
 
 	la a0, imgInfo
 	la t0, output_file_name
 	sw t0, ImgInfo_file_name(a0)
 	jal save_bmp
 
-main_failure:
 	li a7, 10
 	ecall
-
-#============================================================================
-# read_bmp: 
-#	reads the content of a bmp file into memory
-# arguments:
-#	a0 - address of image descriptor structure
-#		input filename pointer, header and image buffers should be set
-# return value: 
-#	a0 - 0 if successful, error code in other cases
-read_bmp:
-	mv t0, a0	# preserve imgInfo structure pointer
-	
-#open file
-	li a7, system_OpenFile
-    lw a0, ImgInfo_file_name(t0)	#file name 
-    li a1, 0					#flags: 0-read file
-    ecall
-	
-	blt a0, zero, rb_error
-	mv t1, a0					# save file handle for the future
-	
-#read header
-	li a7, system_ReadFile
-	lw a1, ImgInfo_header_bufor(t0)
-	li a2, BMPHeader_Size
-	ecall
-	
-#extract image information from header
-	lw a0, BMPHeader_width(a1)
-	sw a0, ImgInfo_width(t0)
-	
-	# compute line size in bytes - bmp line has to be multiple of 4
-	add a2, a0, a0
-	add a0, a2, a0	# pixelbytes = width * 3 
-	addi a0, a0, 3
-	srai a0, a0, 2
-	slli a0, a0, 2	# linebytes = ((pixelbytes + 3) / 4 ) * 4
-	sw a0, ImgInfo_line_bytes(t0)
-	
-	lw a0, BMPHeader_height(a1)
-	sw a0, ImgInfo_height(t0)
-
-#read image data
-	li a7, system_ReadFile
-	mv a0, t1
-	lw a1, ImgInfo_img_begin_ptr(t0)
-	li a2, MAX_IMG_SIZE
-	ecall
-
-#close file
-	li a7, system_CloseFile
-	mv a0, t1
-    ecall
-	
-	mv a0, zero
-	jr ra
-	
-rb_error:
-	li a0, 1	# error opening file	
-	jr ra
 	
 
 validate_width:
@@ -435,7 +357,7 @@ get_pixel:
 # ============================================================================
 
 # ============================================================================
-# invert_red_stripped_stripped - inverts red component in the input image
+# paint_stripe - inverts red component in the input image
 #arguments:
 #	a0 - address of ImgInfo image descriptor
 #return value:
@@ -448,7 +370,7 @@ get_pixel:
 #     rgb = (rgb & 0x0000FFFF) | (0x00FF0000 - (rgb & 0x00FF0000));
 #     set_pixel(imgInfo, x, y, rgb);
 #   }
-invert_red_stripped_stripped:
+paint_stripe:
 	# a3 - offset from the end
 	addi sp, sp, -4
 	sw ra, 0(sp)		#push ra
@@ -460,12 +382,12 @@ invert_red_stripped_stripped:
 	lw a1, ImgInfo_width(a0)
 	addi a1, a1, -1
 	sub a1, a1, a3
-paint_vertical_line:
+vertical_loop:
 
 	jal set_pixel_black
 
 	addi a2, a2, -1
-	bge a2, zero, paint_vertical_line # vertical loop
+	bge a2, zero, vertical_loop # vertical loop
 	
 
 	lw ra, 0(sp)		#pop ra
@@ -593,12 +515,12 @@ generate_bmp:
 
 	li t3, MAX_IMG_SIZE
 	li t2, 0xffffffff
-fill_bmp_loop:
-	beqz t3, fill_exit
+paint_white:
+	beqz t3, paint_white_exit
 	addi t3, t3, -4
 	sw t2, (a1)
 	addi a1, a1, 4
-	b fill_bmp_loop
+	b paint_white
 
-fill_exit:
+paint_white_exit:
 	jr ra
