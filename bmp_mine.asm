@@ -395,6 +395,7 @@ width_loop:
 	lw a1, ImgInfo_width(a0)
 	addi a1, a1, -1
 	sub a1, a1, a3
+	addi a1, a1, 1
 	# sub a1, a1, t6
 vertical_loop:
 
