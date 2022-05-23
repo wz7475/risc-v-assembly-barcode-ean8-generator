@@ -1,10 +1,10 @@
 #	struct {
-#		char* filename;		// wskazanie na nazwę pliku
-#		unsigned char* hdrData; // wskazanie na bufor nagłówka pliku BMP
-#		unsigned char* imgData; // wskazanie na pierwszy piksel obrazu w pamięci
-#		int width, height;	// szerokość i wysokość obrazu w pikselach
-#		int linebytes;		// rozmiar linii (wiersza) obrazu w bajtach
-#	} imgInfo;
+	#		char* filename;		// wskazanie na nazwę pliku
+	#		unsigned char* hdrData; // wskazanie na bufor nagłówka pliku BMP
+	#		unsigned char* imgData; // wskazanie na pierwszy piksel obrazu w pamięci
+	#		int width, height;	// szerokość i wysokość obrazu w pikselach
+	#		int linebytes;		// rozmiar linii (wiersza) obrazu w bajtach
+	#	} imgInfo;
 
 # bmp offsets declarations
 .eqv ImgInfo_file_name	0
@@ -14,7 +14,7 @@
 .eqv ImgInfo_height	16
 .eqv ImgInfo_line_bytes	20
 # .eqv MAX_IMG_SIZE 	1201222 # 400 X 100 x 3 (piksele)
-.eqv MAX_IMG_SIZE 110592 # 768 x 48 
+.eqv MAX_IMG_SIZE 211592 # 768 x 48 
 .eqv BMPHeader_Size 54
 .eqv BMPHeader_width 18
 .eqv BMPHeader_height 22
@@ -28,7 +28,7 @@
 
 # "variables"
 .eqv stripes_per_char 11
-.eqv pixels_per_stripe 4
+# .eqv pixels_per_stripe 4
 
 .eqv BYTES_PER_ROW 192
 
@@ -146,11 +146,12 @@ bmpHeader:	.space	BMPHeader_Size
 
 	.align 2
 imgData: 	.space	MAX_IMG_SIZE
-
-
+pixels_per_stripe: .byte 4
+# -------------------------------- variables for user --------------------------------
 text_to_code: .asciz "12345678"
 output_file_name: .asciz "result.bmp"
 
+#---------------------------------------------------------------
 	.text
 main:
 	# wypełnienie deskryptora obrazu
@@ -164,6 +165,10 @@ main:
 
 	jal	generate_bmp
 
+	jal validate_width
+	li a7, 1
+	ecall
+
 	# li a0, 1
 	# jal get_code_value
 	# li a7, 1
@@ -172,9 +177,7 @@ main:
 
 	# jal go_throuth_text
 
-	# jal validate_width
-	# li a7, 1
-	# ecall
+
 
 	
 	la a0, imgInfo
@@ -189,7 +192,8 @@ main:
 	li a7, 10
 	ecall
 	
-
+# validate_width
+	# a0 - result (0 - ok, 1 - too_narrow)
 validate_width:
 	# t1 - img witdh
 	# t0 - stripes_per_char
@@ -209,7 +213,9 @@ calc_string_len:
 	la t0, imgInfo
 	lw t1, ImgInfo_width(t0)
 	li t0, stripes_per_char
-	li t2, pixels_per_stripe
+	# li t2, pixels_per_stripe
+	la t2, pixels_per_stripe
+	sb t2, (t2)
 	mul t3, t0, t2 # t3 = pixels_per_stripe x stripes_per_char
 	mul t3, t3, t4 # t3 = (pixels_per_stripe x stripes_per_char) x text_len
 	sub t1, t1, t3 
@@ -222,14 +228,11 @@ too_narrow_flag:
 	jr ra
 	
 
-
-
-# ============================================================================
 # save_bmp - saves bmp file stored in memory to a file
-# arguments:
-#	a0 - address of ImgInfo structure containing description of the image`
-# return value: 
-#	a0 - zero if successful, error code in other cases
+	# arguments:
+	#	a0 - address of ImgInfo structure containing description of the image`
+	# return value: 
+	#	a0 - zero if successful, error code in other cases
 
 save_bmp:
 	mv t0, a0	# preserve imgInfo structure pointer
@@ -272,15 +275,14 @@ wb_error:
 	jr ra
 
 
-# ============================================================================
 # set_pixel - sets the color of specified pixel
-#arguments:
-#	a0 - address of ImgInfo image descriptor
-#	a1 - x coordinate
-#	a2 - y coordinate - (0,0) - bottom left corner
-#	a3 - 0RGB - pixel color
-#return value: none
-#remarks - a0, a1, a2 values are left unchanged
+	#arguments:
+	#	a0 - address of ImgInfo image descriptor
+	#	a1 - x coordinate
+	#	a2 - y coordinate - (0,0) - bottom left corner
+	#	a3 - 0RGB - pixel color
+	#return value: none
+	#remarks - a0, a1, a2 values are left unchanged
 
 set_pixel:
 	lw t1, ImgInfo_line_bytes(a0)
@@ -323,15 +325,15 @@ set_pixel_black:
 
 
 
-# ============================================================================
+
 # get_pixel- returns color of specified pixel
-#arguments:
-#	a0 - address of ImgInfo image descriptor
-#	a1 - x coordinate
-#	a2 - y coordinate - (0,0) - bottom left corner
-#return value:
-#	a0 - 0RGB - pixel color
-#remarks: a1, a2 are preserved
+	#arguments:
+	#	a0 - address of ImgInfo image descriptor
+	#	a1 - x coordinate
+	#	a2 - y coordinate - (0,0) - bottom left corner
+	#return value:
+	#	a0 - 0RGB - pixel color
+	#remarks: a1, a2 are preserved
 
 get_pixel:
 	lw t1, ImgInfo_line_bytes(a0)
@@ -354,22 +356,20 @@ get_pixel:
 					
 	jr ra
 
-# ============================================================================
 
-# ============================================================================
-# paint_stripe - inverts red component in the input image
-#arguments:
-#	a0 - address of ImgInfo image descriptor
-#return value:
-#	none
+# paint_stripe - paint vertical stripe
+	#arguments:
+	#	a0 - address of ImgInfo image descriptor
+	#return value:
+	#	none
 
-# for (int y = imgInfo->height-1; y >= 0; --y)
-#   for (int x = imgInfo->width-1; x >= 0; --x)
-#   {
-#     unsigned rgb = get_pixel(imgInfo, x, y);
-#     rgb = (rgb & 0x0000FFFF) | (0x00FF0000 - (rgb & 0x00FF0000));
-#     set_pixel(imgInfo, x, y, rgb);
-#   }
+	# for (int y = imgInfo->height-1; y >= 0; --y)
+	#   for (int x = imgInfo->width-1; x >= 0; --x)
+	#   {
+	#     unsigned rgb = get_pixel(imgInfo, x, y);
+	#     rgb = (rgb & 0x0000FFFF) | (0x00FF0000 - (rgb & 0x00FF0000));
+	#     set_pixel(imgInfo, x, y, rgb);
+	#   }
 paint_stripe:
 	# a3 - offset from the end
 	addi sp, sp, -4
@@ -461,9 +461,7 @@ read_pairs:
 
 generate_bmp:
 	mv t0, a0	# preserve imgInfo structure pointer
-	
-#open file					# save file handle for the future
-	
+		
 	mv a1, t0
 	addi a1, a1, 12
 	
