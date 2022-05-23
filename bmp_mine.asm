@@ -282,35 +282,6 @@ wb_error:
 	li a0, 2 # error writing file
 	jr ra
 
-
-# set_pixel - sets the color of specified pixel
-	#arguments:
-	#	a0 - address of ImgInfo image descriptor
-	#	a1 - x coordinate
-	#	a2 - y coordinate - (0,0) - bottom left corner
-	#	a3 - 0RGB - pixel color
-	#return value: none
-	#remarks - a0, a1, a2 values are left unchanged
-
-set_pixel:
-	lw t1, ImgInfo_line_bytes(a0)
-	mul t1, t1, a2  # t1 = y * linebytes
-	add t0, a1, a1
-	add t0, t0, a1 	# t0 = x * 3
-	add t0, t0, t1  # t0 is offset of the pixel
-
-	lw t1, ImgInfo_img_begin_ptr(a0) # address of image data
-	add t0, t0, t1 	# t0 is address of the pixel
-	
-	#set new color
-	sb   a3,(t0)		#store B
-	srli a3, a3, 8
-	sb   a3, 1(t0)		#store G
-	srli a3, a3, 8
-	sb   a3, 2(t0)		#store R
-
-	jr ra
-
 set_pixel_black:
 	lw t1, ImgInfo_line_bytes(a0)
 	mul t1, t1, a2  # t1 = y * linebytes
@@ -330,40 +301,6 @@ set_pixel_black:
 	sb   t3, 2(t0)		#store R
 
 	jr ra
-
-
-
-
-# get_pixel- returns color of specified pixel
-	#arguments:
-	#	a0 - address of ImgInfo image descriptor
-	#	a1 - x coordinate
-	#	a2 - y coordinate - (0,0) - bottom left corner
-	#return value:
-	#	a0 - 0RGB - pixel color
-	#remarks: a1, a2 are preserved
-
-get_pixel:
-	lw t1, ImgInfo_line_bytes(a0)
-	mul t1, t1, a2  # t1 = y * linebytes
-	add t0, a1, a1
-	add t0, t0, a1 	# t0 = x * 3
-	add t0, t0, t1  # t0 is offset of the pixel
-
-	lw t1, ImgInfo_img_begin_ptr(a0) # address of image data
-	add t0, t0, t1 	# t0 is address of the pixel
-
-	#get color
-	lbu a0,(t0)		#load B
-	lbu t1,1(t0)		#load G
-	slli t1,t1,8
-	or a0, a0, t1
-	lbu t1,2(t0)		#load R
-    slli t1,t1,16
-	or a0, a0, t1
-					
-	jr ra
-
 
 # paint_stripe - paint vertical stripe
 	#arguments:
@@ -385,13 +322,18 @@ paint_stripe:
 
 	la t6, pixels_per_stripe
 	lb t6, (t6)
+
+	lw s0, ImgInfo_height(a0)
+	addi s0, s0, -1
+
+	lw s1, ImgInfo_width(a0)
+	addi s1, s1, -1
+
 width_loop:
-	lw a2, ImgInfo_height(a0)
-	addi a2, a2, -1		
+	mv a2, s0	
 
 	# a1 - address of right-most pixel
-	lw a1, ImgInfo_width(a0)
-	addi a1, a1, -1
+	mv a1, s1
 	sub a1, a1, a3
 	# addi a1, a1, 1
 	# sub a1, a1, t6
