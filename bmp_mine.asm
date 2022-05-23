@@ -13,10 +13,7 @@
 .eqv ImgInfo_width	12
 .eqv ImgInfo_height	16
 .eqv ImgInfo_line_bytes	20
-# .eqv MAX_IMG_SIZE 	1201222 # 400 X 100 x 3 (piksele)
-.eqv MAX_IMG_SIZE 211592 # 768 x 48 - zapas
-# .eqv MAX_IMG_SIZE 110592 # 768 x 48 black area
-# .eqv MAX_IMG_SIZE 110646  # 768 x 48 error - error
+.eqv MAX_IMG_SIZE 147456 # 768 x 64
 .eqv BMPHeader_Size 54
 .eqv BMPHeader_width 18
 .eqv BMPHeader_height 22
@@ -148,11 +145,11 @@ bmpHeader:	.space	BMPHeader_Size
 
 	.align 2
 imgData: 	.space	MAX_IMG_SIZE
-pixels_per_stripe: .byte 4
+
 # -------------------------------- variables for user --------------------------------
 text_to_code: .asciz "12345678"
 output_file_name: .asciz "result.bmp"
-
+pixels_per_stripe: .byte 1
 #---------------------------------------------------------------
 	.text
 main:
@@ -183,8 +180,18 @@ main:
 
 	
 	la a0, imgInfo
-	li a3, 32
+
+	# li a3, 40
+	# jal paint_stripe
+
+	li a4, 10
+	li a3, 400
+loop:
+	
 	jal paint_stripe
+	addi a3, a3, -1
+	addi a4, a4, -1
+	bge a4, zero, loop
 
 	la a0, imgInfo
 	la t0, output_file_name
@@ -373,9 +380,13 @@ get_pixel:
 	#     set_pixel(imgInfo, x, y, rgb);
 	#   }
 paint_stripe:
-	# a3 - offset from the end
+	# a3 - offset from the end - input, 
 	addi sp, sp, -4
 	sw ra, 0(sp)		#push ra
+
+	la t6, pixels_per_stripe
+	lb t6, (t6)
+width_loop:
 	
 	lw a2, ImgInfo_height(a0)
 	addi a2, a2, -1		
@@ -384,12 +395,18 @@ paint_stripe:
 	lw a1, ImgInfo_width(a0)
 	addi a1, a1, -1
 	sub a1, a1, a3
+	# sub a1, a1, t6
 vertical_loop:
 
 	jal set_pixel_black
 
+
 	addi a2, a2, -1
 	bge a2, zero, vertical_loop # vertical loop
+
+	addi t6, t6, -1
+	# addi a3, a3, -1
+	bge t6, zero, width_loop
 	
 
 	lw ra, 0(sp)		#pop ra
