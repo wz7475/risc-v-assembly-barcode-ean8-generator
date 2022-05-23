@@ -27,7 +27,6 @@
 
 # "variables"
 .eqv stripes_per_char 11
-# .eqv pixels_per_stripe 4
 
 .eqv BYTES_PER_ROW 192
 
@@ -149,7 +148,7 @@ imgData: 	.space	MAX_IMG_SIZE
 # -------------------------------- variables for user --------------------------------
 text_to_code: .asciz "12345678"
 output_file_name: .asciz "result.bmp"
-pixels_per_stripe: .byte 1
+pixels_per_stripe: .byte 4
 #---------------------------------------------------------------
 	.text
 main:
@@ -186,12 +185,12 @@ main:
 
 	li a4, 10
 	li a3, 400
-loop:
+# loop:
 	
 	jal paint_stripe
 	addi a3, a3, -1
-	addi a4, a4, -1
-	bge a4, zero, loop
+	# addi a4, a4, -1
+	# bge a4, zero, loop
 
 	la a0, imgInfo
 	la t0, output_file_name
@@ -224,7 +223,7 @@ calc_string_len:
 	li t0, stripes_per_char
 	# li t2, pixels_per_stripe
 	la t2, pixels_per_stripe
-	sb t2, (t2)
+	lb t2, (t2)
 	mul t3, t0, t2 # t3 = pixels_per_stripe x stripes_per_char
 	mul t3, t3, t4 # t3 = (pixels_per_stripe x stripes_per_char) x text_len
 	sub t1, t1, t3 
@@ -387,7 +386,6 @@ paint_stripe:
 	la t6, pixels_per_stripe
 	lb t6, (t6)
 width_loop:
-	
 	lw a2, ImgInfo_height(a0)
 	addi a2, a2, -1		
 
@@ -395,21 +393,19 @@ width_loop:
 	lw a1, ImgInfo_width(a0)
 	addi a1, a1, -1
 	sub a1, a1, a3
-	addi a1, a1, 1
+	# addi a1, a1, 1
 	# sub a1, a1, t6
 vertical_loop:
 
 	jal set_pixel_black
 
-
 	addi a2, a2, -1
 	bge a2, zero, vertical_loop # vertical loop
 
 	addi t6, t6, -1
-	# addi a3, a3, -1
+	addi a3, a3, -1
 	bge t6, zero, width_loop
 	
-
 	lw ra, 0(sp)		#pop ra
 	addi sp, sp, 4
 	jr ra
