@@ -146,7 +146,7 @@ bmpHeader:	.space	BMPHeader_Size
 imgData: 	.space	MAX_IMG_SIZE
 
 # -------------------------------- variables for user --------------------------------
-text_to_code: .asciz "1243"
+text_to_code: .asciz "13"
 output_file_name: .asciz "result.bmp"
 pixels_per_stripe: .byte 2
 #---------------------------------------------------------------
@@ -163,12 +163,16 @@ main:
 	# ecall
 
 	li a0, 3
-	li a1, 20
+	li a1, 100
+	jal paint_character
+
+	li a0, 2
+	li a1, 200
 	jal paint_character
 
 
-	la a0, text_to_code
-	jal go_throuth_text
+	# la a0, text_to_code
+	# jal go_throuth_text
 
 
 
