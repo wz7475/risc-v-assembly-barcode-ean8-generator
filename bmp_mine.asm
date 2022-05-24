@@ -154,12 +154,7 @@ pixels_per_stripe: .byte 4
 main:
 	# wypełnienie deskryptora obrazu
 	la a0, imgInfo  
-	la t0, output_file_name 
-	sw t0, ImgInfo_file_name(a0) # store word
-	la t0, bmpHeader
-	sw t0, ImgInfo_header_bufor(a0)
-	la t0, imgData
-	sw t0, ImgInfo_img_begin_ptr(a0) 
+	
 
 	jal	generate_bmp
 
@@ -172,34 +167,26 @@ main:
 	# li a7, 1
 	# ecall
 
-
 	# jal go_throuth_text
 
 
 
-	
+# paint stripes	
 	la a0, imgInfo
-
-	# li a3, 40
-	# jal paint_stripe
-
-	li a4, 10
-	li a3, 400
-	
-	# prepare paint_stripe call
-
-# loop:
-	
+	li a1, 400
 	jal paint_stripe
-	addi a3, a3, -1
-	# addi a4, a4, -1
-	# bge a4, zero, loop
 
+	addi a1, a1, 1
+	jal paint_stripe
+
+
+# save img
 	la a0, imgInfo
 	la t0, output_file_name
 	sw t0, ImgInfo_file_name(a0)
 	jal save_bmp
 
+# exit
 	li a7, 10
 	ecall
 	
@@ -302,9 +289,10 @@ wb_error:
 paint_stripe:
 	#arguments:
 	#	a0 - address of ImgInfo image descriptor
+	#	a1 - offset from the end
 	#return value:
 	#	none
-	
+
 	# a3 - offset from the end - input, 
 	# addi sp, sp, -4
 	# sw ra, 0(sp)		#push ra
@@ -320,11 +308,13 @@ paint_stripe:
 	lw s4, ImgInfo_img_begin_ptr(a0) # address of image data
 	lw s3, ImgInfo_line_bytes(a0)
 
+	mv s5, a1 # save a1 - offset
+
 
 width_loop:
 	mv a2, s0	
 	mv a1, s1	# a1 - address of right-most pixel
-	sub a1, a1, a3
+	sub a1, a1, s5
 
 vertical_loop:
 	mv t1, s3
@@ -348,9 +338,10 @@ vertical_loop:
 	bge a2, zero, vertical_loop # vertical loop
 
 	addi s2, s2, -1
-	addi a3, a3, -1
+	addi s5, s5, 1
 	bge s2, zero, width_loop
 	
+	mv a1, s5
 	jr ra
 
 
@@ -419,9 +410,17 @@ read_pairs:
 	jr ra
 
 generate_bmp:
-	mv t0, a0	# preserve imgInfo structure pointer
+	la t0, output_file_name 
+	sw t0, ImgInfo_file_name(a0) # store word
+	la t0, bmpHeader
+	sw t0, ImgInfo_header_bufor(a0)
+	la t0, imgData
+	sw t0, ImgInfo_img_begin_ptr(a0) 
+
+	# mv t0, a0	# preserve imgInfo structure pointer
 		
-	mv a1, t0
+	# mv a1, t0
+	mv a1, a0
 	addi a1, a1, 12
 	
 	li t3, 768 #width
