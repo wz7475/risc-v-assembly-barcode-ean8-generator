@@ -346,19 +346,19 @@ get_code_value:
 	lh s1, (s0)
 
 	la a0, imgInfo
-	# li a1, 200
+
+	# right slient zone
+	la s3, pixels_per_stripe
+	lb s3, (s3)
+	li t0, 10
+	mul s3, s3, t0
 
 	# loop - read 11 bits
 	li s0, stripes_per_char
-	li a7, 1 # to delete after calling own function
 
 bits_loop:
 	# mv s2, a0
 	andi s2, s1, 1
-
-	# to swap with set black_white
-	# ecall
-	# mv a0, s2
 
 	beqz s2, white_stripe 
 	
