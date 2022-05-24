@@ -326,6 +326,7 @@ vertical_loop:
 	bge t2, zero, width_loop
 	
 	mv a1, a4
+	# sub a1, a1, t2
 	lw t5, 0(sp)		#pop t5
 	lw t4, 4(sp)
 	addi sp, sp, 8
@@ -345,7 +346,7 @@ get_code_value:
 	lh s1, (s0)
 
 	la a0, imgInfo
-	li a1, 200
+	# li a1, 200
 
 	# loop - read 11 bits
 	li s0, stripes_per_char
@@ -362,14 +363,13 @@ bits_loop:
 	beqz s2, white_stripe 
 	
 black_stripe:
+	mv a1, s3
 	jal paint_stripe
-	# in new implemtation paint_stripe spoils a1 - offset
-	# do not increment it, but only preserve
-	b black
+
 
 white_stripe:
-	addi a1, a1, 2
-black:
+	addi s3, s3, 2
+
 
 	addi s0, s0, -1 # counter--
 	
