@@ -162,17 +162,17 @@ main:
 	# li a7, 1
 	# ecall
 
-	li a0, 0
-	li a1, 100
-	jal paint_character
+	# li a0, 0
+	# li a1, 100
+	# jal paint_character
 
 	# li a0, 2
 	# li a1, 111
 	# jal paint_character
 
 
-	# la a0, text_to_code
-	# jal go_throuth_text
+	la a0, text_to_code
+	jal go_throuth_text
 
 
 
