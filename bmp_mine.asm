@@ -146,9 +146,9 @@ bmpHeader:	.space	BMPHeader_Size
 imgData: 	.space	MAX_IMG_SIZE
 
 # -------------------------------- variables for user --------------------------------
-text_to_code: .asciz "125656"
+text_to_code: .asciz "0000"
 output_file_name: .asciz "result.bmp"
-pixels_per_stripe: .byte 2
+pixels_per_stripe: .byte 1
 #---------------------------------------------------------------
 	.text
 main:
@@ -336,7 +336,7 @@ vertical_loop:
 	addi sp, sp, 4
 	jr ra
 
-
+# =============================================================
 paint_character:
 	# a0 - input - index of the code value
 	# a1 - offest for character
@@ -357,7 +357,7 @@ paint_character:
 
 	la a0, imgInfo
 
-	
+
 	la s2, pixels_per_stripe
 	lb s2, (s2)
 	add s2, s2, a1
@@ -380,7 +380,9 @@ black_stripe:
 
 
 white_stripe:
-	addi s2, s2, 2
+	la t0, pixels_per_stripe
+	lb t0, (t0)
+	add s2, s2, t0
 
 
 	addi s0, s0, -1 # counter--
@@ -405,7 +407,11 @@ go_throuth_text:
 	addi sp, sp, -4
 	sw ra, 0(sp)
 	mv t0, a0
-	li s9, 20
+	la t1, pixels_per_stripe
+	lb, t1, (t1)
+	li t2, 10
+	mul t1, t1, t2
+	mv s9, t1
 text_lopp:
 	lb t1, (a0)
 	addi a0, a0, 1
@@ -434,7 +440,11 @@ read_pairs:
 	# sum
 	add a0, t1, t2
 
-	addi s9, s9, 22
+	la t4, pixels_per_stripe
+	lb t4, (t4)
+	li t5, stripes_per_char
+	mul t4, t4, t5
+	add s9, s9, t4
 	mv a1, s9
 	# li a7, 1
 	# ecall
