@@ -173,7 +173,7 @@ main:
 
 # paint stripes	
 	la a0, imgInfo
-	li a1, 400
+	li a1, 0
 	jal paint_stripe
 
 	addi a1, a1, 1
@@ -190,13 +190,14 @@ main:
 	li a7, 10
 	ecall
 	
-# validate_width
-	# a0 - result (0 - ok, 1 - too_narrow)
+
 validate_width:
 	# t1 - img witdh
 	# t0 - stripes_per_char
 	# t2 - pixels_per_stripe
 	# t4 - string length
+	# validate_width
+	# a0 - result (0 - ok, 1 - too_narrow)
 
 	# calc text_to_code length
 	mv t4, zero
@@ -235,7 +236,7 @@ too_narrow_flag:
 save_bmp:
 	mv t0, a0	# preserve imgInfo structure pointer
 	
-#open file
+	#open file
 	li a7, system_OpenFile
     lw a0, ImgInfo_file_name(t0)	#file name 
     li a1, 1					#flags: 1-write file
@@ -244,13 +245,13 @@ save_bmp:
 	blt a0, zero, wb_error
 	mv t1, a0					# save file handle for the future
 	
-#write header
+	#write header
 	li a7, system_WriteFile
 	lw a1, ImgInfo_header_bufor(t0)
 	li a2, BMPHeader_Size
 	ecall
 	
-#write image data
+	#write image data
 	li a7, system_WriteFile
 	mv a0, t1
 	# compute image size (linebytes * height)
@@ -260,7 +261,7 @@ save_bmp:
 	lw a1, ImgInfo_img_begin_ptr(t0)
 	ecall
 
-#close file
+	#close file
 	li a7, system_CloseFile
 	mv a0, t1
     ecall
@@ -273,29 +274,19 @@ wb_error:
 	jr ra
 
 
-# paint_stripe - paint vertical stripe
-	#arguments:
-	#	a0 - address of ImgInfo image descriptor
-	#return value:
-	#	none
 
-	# for (int y = imgInfo->height-1; y >= 0; --y)
-	#   for (int x = imgInfo->width-1; x >= 0; --x)
-	#   {
-	#     unsigned rgb = get_pixel(imgInfo, x, y);
-	#     rgb = (rgb & 0x0000FFFF) | (0x00FF0000 - (rgb & 0x00FF0000));
-	#     set_pixel(imgInfo, x, y, rgb);
-	#   }
 paint_stripe:
 	#arguments:
 	#	a0 - address of ImgInfo image descriptor
 	#	a1 - offset from the end
 	#return value:
-	#	none
+	#	a0 - preserved
+	#	a1 - offset after paint stripe
 
-	# a3 - offset from the end - input, 
-	# addi sp, sp, -4
-	# sw ra, 0(sp)		#push ra
+	addi sp, sp, -8
+	sw s0, 4(sp)
+	sw s1, 0(sp)		#push s1
+
 	la s2, pixels_per_stripe
 	lb s2, (s2)
 
@@ -342,31 +333,42 @@ vertical_loop:
 	bge s2, zero, width_loop
 	
 	mv a1, s5
+	lw s1, 0(sp)		#pop s1
+	lw s0, 4(sp)
+	addi sp, sp, 8
 	jr ra
 
 
 get_code_value:
 	# a0 - input - index of the code value
 	# a0 - output - loaded value 
-	la t0, codes_table
+	addi sp, sp -4
+	sw ra, 0(sp)
+
+	# load value from table
+	la s0, codes_table
 	slli a0, a0, 1 # index * 2 (halfword - 2 bytes)
-	add t0, t0, a0
-	lh t1, (t0)
+	add s0, s0, a0
+	lh s1, (s0)
 
 	# loop - read 11 bits
-	li t0, 10
+	li s0, 10
 	li a7, 1 # to delete after calling own function
+
 bits_loop:
-	andi a0, t1, 1
+	andi a0, s1, 1
 
 	# to swap with set black_white
 	ecall
+	jal paint_stripe
 
-	addi t0, t0, -1 # counter--
+	addi s0, s0, -1 # counter--
 	
-	srli t1, t1, 1
+	srli s1, s1, 1
 	bnez t0, bits_loop
 
+	lw ra, 0(sp)
+	addi sp, sp, 4
 	jr ra
 	
 
