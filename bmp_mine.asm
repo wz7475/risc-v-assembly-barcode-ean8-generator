@@ -146,7 +146,7 @@ bmpHeader:	.space	BMPHeader_Size
 imgData: 	.space	MAX_IMG_SIZE
 
 # -------------------------------- variables for user --------------------------------
-text_to_code: .asciz "12345678"
+text_to_code: .asciz "1243"
 output_file_name: .asciz "result.bmp"
 pixels_per_stripe: .byte 2
 #---------------------------------------------------------------
@@ -397,27 +397,32 @@ white_stripe:
 
 
 go_throuth_text:
-	la t0, text_to_code
+	# a0 - text_to_code
+	# so - pointer for last character
+	# s1 - len of text_to_code
+	mv t2, a0
+	mv t0, a0
 text_lopp:
-	lb t1, (t0)
-	addi t0, t0, 1
+	lb t1, (t2)
+	addi t2, t2, 1
 	
 	bnez t1, text_lopp
 	
-	addi t0, t0, -2
-	# now we have pointer for last character
-	la t4, text_to_code
-	sub t4, t0, t4
-	addi t4, t4, 1
+	addi s0, t2, -2
+	# now we have pointer for last character - s0
+
+	# s1 - len of text to code
+	sub s1, s0, t0
+	addi s1, s1, 1
 
 read_pairs:
 	# unit part
-	lb t1, (t0)
+	lb t1, (s0)
 	addi t1, t1, -48
 	
 	# decimal part
-	addi t0, t0, -1
-	lb t2, (t0)
+	addi s0, s0, -1
+	lb t2, (s0)
 	addi t2, t2, -48
 	li t3, 10
 	mul t2, t2, t3
@@ -428,9 +433,9 @@ read_pairs:
 	ecall
 
 	# loop commands
-	addi t0, t0, -1
-	addi t4, t4, -2
-	bnez t4, read_pairs
+	addi s0, s0, -1
+	addi s1, s1, -2
+	bnez s1, read_pairs
 
 	jr ra
 
