@@ -187,17 +187,7 @@ main:
 	li a3, 400
 	
 	# prepare paint_stripe call
-	la s2, pixels_per_stripe
-	lb s2, (s2)
 
-	lw s0, ImgInfo_height(a0)
-	addi s0, s0, -1
-
-	lw s1, ImgInfo_width(a0)
-	addi s1, s1, -1
-
-	lw s4, ImgInfo_img_begin_ptr(a0) # address of image data
-	lw s3, ImgInfo_line_bytes(a0)
 # loop:
 	
 	jal paint_stripe
@@ -310,10 +300,25 @@ wb_error:
 	#     set_pixel(imgInfo, x, y, rgb);
 	#   }
 paint_stripe:
+	#arguments:
+	#	a0 - address of ImgInfo image descriptor
+	#return value:
+	#	none
+	
 	# a3 - offset from the end - input, 
 	# addi sp, sp, -4
 	# sw ra, 0(sp)		#push ra
+	la s2, pixels_per_stripe
+	lb s2, (s2)
 
+	lw s0, ImgInfo_height(a0)
+	addi s0, s0, -1
+
+	lw s1, ImgInfo_width(a0)
+	addi s1, s1, -1
+
+	lw s4, ImgInfo_img_begin_ptr(a0) # address of image data
+	lw s3, ImgInfo_line_bytes(a0)
 
 
 width_loop:
