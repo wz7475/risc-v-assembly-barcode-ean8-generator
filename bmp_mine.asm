@@ -400,15 +400,14 @@ go_throuth_text:
 	# a0 - text_to_code
 	# so - pointer for last character
 	# s1 - len of text_to_code
-	mv t2, a0
 	mv t0, a0
 text_lopp:
-	lb t1, (t2)
-	addi t2, t2, 1
+	lb t1, (a0)
+	addi a0, a0, 1
 	
 	bnez t1, text_lopp
 	
-	addi s0, t2, -2
+	addi s0, a0, -2
 	# now we have pointer for last character - s0
 
 	# s1 - len of text to code
