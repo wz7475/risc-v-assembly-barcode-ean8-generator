@@ -166,7 +166,8 @@ main:
 	jal get_code_value
 
 
-	# jal go_throuth_text
+	la a0, text_to_code
+	jal go_throuth_text
 
 
 
@@ -335,40 +336,42 @@ vertical_loop:
 
 get_code_value:
 	# a0 - input - index of the code value
-	# a0 - output - loaded value 
+	# s0 - counter for 11 stripes in char
+	# s1 - read bianry number representating colors
+	# s2 - offset for next stripes
 	addi sp, sp -4
 	sw ra, 0(sp)
 
 	# load value from table
-	la s0, codes_table
+	la t0, codes_table
 	slli a0, a0, 1 # index * 2 (halfword - 2 bytes)
-	add s0, s0, a0
-	lh s1, (s0)
+	add t0, t0, a0
+	lh s1, (t0)
 
 	la a0, imgInfo
 
 	# right slient zone
-	la s3, pixels_per_stripe
-	lb s3, (s3)
+	la s2, pixels_per_stripe
+	lb s2, (s2)
 	li t0, 10
-	mul s3, s3, t0
+	mul s2, s2, t0
 
 	# loop - read 11 bits
 	li s0, stripes_per_char
 
 bits_loop:
-	# mv s2, a0
-	andi s2, s1, 1
+	# mv t0, a0
+	andi t0, s1, 1
 
-	beqz s2, white_stripe 
+	beqz t0, white_stripe 
 	
 black_stripe:
-	mv a1, s3
+	mv a1, s2
 	jal paint_stripe
 
 
 white_stripe:
-	addi s3, s3, 2
+	addi s2, s2, 2
 
 
 	addi s0, s0, -1 # counter--
