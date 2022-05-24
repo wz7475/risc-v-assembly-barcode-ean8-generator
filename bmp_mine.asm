@@ -162,17 +162,17 @@ main:
 	# li a7, 1
 	# ecall
 
-	li a0, 3
-	li a1, 100
-	jal paint_character
+	# li a0, 3
+	# li a1, 100
+	# jal paint_character
 
-	li a0, 2
-	li a1, 200
-	jal paint_character
+	# li a0, 2
+	# li a1, 200
+	# jal paint_character
 
 
-	# la a0, text_to_code
-	# jal go_throuth_text
+	la a0, text_to_code
+	jal go_throuth_text
 
 
 
@@ -402,6 +402,8 @@ go_throuth_text:
 	# a0 - text_to_code
 	# so - pointer for last character
 	# s1 - len of text_to_code
+	addi sp, sp, -4
+	sw ra, 0(sp)
 	mv t0, a0
 text_lopp:
 	lb t1, (a0)
@@ -440,6 +442,8 @@ read_pairs:
 	addi s1, s1, -2
 	bnez s1, read_pairs
 
+	lw ra, 0(sp)
+	addi sp, sp, 4
 	jr ra
 
 # =============================================================
