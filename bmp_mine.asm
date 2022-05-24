@@ -287,35 +287,35 @@ paint_stripe:
 	sw s0, 4(sp)
 	sw s1, 0(sp)		#push s1
 
-	la s2, pixels_per_stripe
-	lb s2, (s2)
+	la t2, pixels_per_stripe
+	lb t2, (t2)
 
-	lw s0, ImgInfo_height(a0)
-	addi s0, s0, -1
+	lw t4, ImgInfo_height(a0)
+	addi t4, t4, -1
 
-	lw s1, ImgInfo_width(a0)
-	addi s1, s1, -1
+	lw t5, ImgInfo_width(a0)
+	addi t5, t5, -1
 
-	lw s4, ImgInfo_img_begin_ptr(a0) # address of image data
-	lw s3, ImgInfo_line_bytes(a0)
+	lw t6, ImgInfo_img_begin_ptr(a0) # address of image data
+	lw a3, ImgInfo_line_bytes(a0)
 
-	mv s5, a1 # save a1 - offset
+	mv a4, a1 # save a1 - offset
 
 
 width_loop:
-	mv a2, s0	
-	mv a1, s1	# a1 - address of right-most pixel
-	sub a1, a1, s5
+	mv a2, t4	
+	mv a1, t5	# a1 - address of right-most pixel
+	sub a1, a1, a4
 
 vertical_loop:
-	mv t1, s3
+	mv t1, a3
 	mul t1, t1, a2  # t1 = y * linebytes
 	add t0, a1, a1
 	add t0, t0, a1 	# t0 = x * 3
 	add t0, t0, t1  # t0 is offset of given pixel
 
 	
-	add t0, t0, s4 	# t0 is address of the pixel
+	add t0, t0, t6 	# t0 is address of the pixel
 	
 	li t3, 0x00000000
 	#set new color
@@ -328,13 +328,13 @@ vertical_loop:
 	addi a2, a2, -1
 	bge a2, zero, vertical_loop # vertical loop
 
-	addi s2, s2, -1
-	addi s5, s5, 1
-	bge s2, zero, width_loop
+	addi t2, t2, -1
+	addi a4, a4, 1
+	bge t2, zero, width_loop
 	
-	mv a1, s5
-	lw s1, 0(sp)		#pop s1
-	lw s0, 4(sp)
+	mv a1, a4
+	lw t5, 0(sp)		#pop t5
+	lw t4, 4(sp)
 	addi sp, sp, 8
 	jr ra
 
