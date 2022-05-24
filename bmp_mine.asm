@@ -162,7 +162,7 @@ main:
 	# li a7, 1
 	# ecall
 
-	li a0, 1
+	li a0, 3
 	jal get_code_value
 
 
@@ -225,12 +225,6 @@ too_narrow_flag:
 	li a0, 1
 	jr ra
 	
-
-# save_bmp - saves bmp file stored in memory to a file
-	# arguments:
-	#	a0 - address of ImgInfo structure containing description of the image`
-	# return value: 
-	#	a0 - zero if successful, error code in other cases
 
 save_bmp:
 	mv t0, a0	# preserve imgInfo structure pointer
@@ -369,6 +363,8 @@ bits_loop:
 	
 black_stripe:
 	jal paint_stripe
+	# in new implemtation paint_stripe spoils a1 - offset
+	# do not increment it, but only preserve
 	b black
 
 white_stripe:
