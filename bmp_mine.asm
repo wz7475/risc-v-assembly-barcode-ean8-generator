@@ -146,7 +146,7 @@ bmpHeader:	.space	BMPHeader_Size
 imgData: 	.space	MAX_IMG_SIZE
 
 # -------------------------------- variables for user --------------------------------
-text_to_code: .asciz "123456"
+text_to_code: .asciz "125656"
 output_file_name: .asciz "result.bmp"
 pixels_per_stripe: .byte 2
 #---------------------------------------------------------------
