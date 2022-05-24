@@ -148,7 +148,7 @@ imgData: 	.space	MAX_IMG_SIZE
 # -------------------------------- variables for user --------------------------------
 text_to_code: .asciz "12345678"
 output_file_name: .asciz "result.bmp"
-pixels_per_stripe: .byte 4
+pixels_per_stripe: .byte 2
 #---------------------------------------------------------------
 	.text
 main:
@@ -158,26 +158,25 @@ main:
 
 	jal	generate_bmp
 
-	jal validate_width
-	li a7, 1
-	ecall
-
-	# li a0, 1
-	# jal get_code_value
+	# jal validate_width
 	# li a7, 1
 	# ecall
+
+	li a0, 1
+	jal get_code_value
+
 
 	# jal go_throuth_text
 
 
 
 # paint stripes	
-	la a0, imgInfo
-	li a1, 0
-	jal paint_stripe
+	# la a0, imgInfo
+	# li a1, 0
+	# jal paint_stripe
 
-	addi a1, a1, 1
-	jal paint_stripe
+	# addi a1, a1, 1
+	# jal paint_stripe
 
 
 # save img
@@ -351,21 +350,35 @@ get_code_value:
 	add s0, s0, a0
 	lh s1, (s0)
 
+	la a0, imgInfo
+	li a1, 200
+
 	# loop - read 11 bits
-	li s0, 10
+	li s0, stripes_per_char
 	li a7, 1 # to delete after calling own function
 
 bits_loop:
-	andi a0, s1, 1
+	# mv s2, a0
+	andi s2, s1, 1
 
 	# to swap with set black_white
-	ecall
+	# ecall
+	# mv a0, s2
+
+	beqz s2, white_stripe 
+	
+black_stripe:
 	jal paint_stripe
+	b black
+
+white_stripe:
+	addi a1, a1, 2
+black:
 
 	addi s0, s0, -1 # counter--
 	
 	srli s1, s1, 1
-	bnez t0, bits_loop
+	bnez s0, bits_loop
 
 	lw ra, 0(sp)
 	addi sp, sp, 4
