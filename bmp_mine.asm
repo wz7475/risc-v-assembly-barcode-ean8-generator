@@ -171,8 +171,8 @@ main:
 	jal paint_character
 
 
-	la a0, text_to_code
-	jal go_throuth_text
+	# la a0, text_to_code
+	# jal go_throuth_text
 
 
 
@@ -282,9 +282,8 @@ paint_stripe:
 	#	a0 - preserved
 	#	a1 - offset after paint stripe
 
-	addi sp, sp, -8
-	sw s0, 4(sp)
-	sw s1, 0(sp)		#push s1
+	addi sp, sp, -4
+	sw ra, 0(sp)
 
 	la t2, pixels_per_stripe
 	lb t2, (t2)
@@ -333,9 +332,8 @@ vertical_loop:
 	
 	mv a1, a4
 	# sub a1, a1, t2
-	lw t5, 0(sp)		#pop t5
-	lw t4, 4(sp)
-	addi sp, sp, 8
+	lw ra, 0(sp)
+	addi sp, sp, 4
 	jr ra
 
 
