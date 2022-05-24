@@ -171,8 +171,8 @@ main:
 	jal paint_character
 
 
-	# la a0, text_to_code
-	# jal go_throuth_text
+	la a0, text_to_code
+	jal go_throuth_text
 
 
 
@@ -195,7 +195,7 @@ main:
 	li a7, 10
 	ecall
 	
-
+#================================================================
 validate_width:
 	# t1 - img witdh
 	# t0 - stripes_per_char
@@ -231,7 +231,7 @@ too_narrow_flag:
 	li a0, 1
 	jr ra
 	
-
+# =============================================================
 save_bmp:
 	mv t0, a0	# preserve imgInfo structure pointer
 	
@@ -273,7 +273,7 @@ wb_error:
 	jr ra
 
 
-
+#================================================================
 paint_stripe:
 	#arguments:
 	#	a0 - address of ImgInfo image descriptor
@@ -399,7 +399,7 @@ white_stripe:
 	jr ra
 	
 
-
+#================================================================
 go_throuth_text:
 	# a0 - text_to_code
 	# so - pointer for last character
@@ -432,8 +432,10 @@ read_pairs:
 	
 	# sum
 	add a0, t1, t2
-	li a7, 1
-	ecall
+	li a1, 40
+	# li a7, 1
+	# ecall
+	jal paint_character
 
 	# loop commands
 	addi s0, s0, -1
@@ -442,6 +444,7 @@ read_pairs:
 
 	jr ra
 
+# =============================================================
 generate_bmp:
 	la t0, output_file_name 
 	sw t0, ImgInfo_file_name(a0) # store word
