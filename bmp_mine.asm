@@ -341,8 +341,11 @@ paint_character:
 	# s0 - counter for 11 stripes in char
 	# s1 - read bianry number representating colors
 	# s2 - offset for next stripes
-	addi sp, sp -4
-	sw ra, 0(sp)
+	addi sp, sp -16
+	sw ra, 12(sp)
+	sw s2, 8(sp)
+	sw s1, 4(sp)
+	sw s0, 0(sp)
 
 	# load value from table
 	la t0, codes_table
@@ -383,8 +386,12 @@ white_stripe:
 	srli s1, s1, 1
 	bnez s0, bits_loop
 
-	lw ra, 0(sp)
-	addi sp, sp, 4
+
+	lw s0, 0(sp)
+	lw s1, 4(sp)
+	lw s2, 8(sp)
+	lw ra, 12(sp)
+	addi sp, sp, 16
 	jr ra
 	
 
