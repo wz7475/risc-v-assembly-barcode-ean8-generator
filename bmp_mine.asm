@@ -163,7 +163,8 @@ main:
 	# ecall
 
 	li a0, 3
-	jal get_code_value
+	li a1, 20
+	jal paint_character
 
 
 	la a0, text_to_code
@@ -334,8 +335,9 @@ vertical_loop:
 	jr ra
 
 
-get_code_value:
+paint_character:
 	# a0 - input - index of the code value
+	# a1 - offest for character
 	# s0 - counter for 11 stripes in char
 	# s1 - read bianry number representating colors
 	# s2 - offset for next stripes
@@ -350,11 +352,13 @@ get_code_value:
 
 	la a0, imgInfo
 
-	# right slient zone
+	
 	la s2, pixels_per_stripe
 	lb s2, (s2)
-	li t0, 10
-	mul s2, s2, t0
+	add s2, s2, a1
+	# right slient zone
+	# li t0, 10
+	# mul s2, s2, t0
 
 	# loop - read 11 bits
 	li s0, stripes_per_char
