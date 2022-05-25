@@ -148,7 +148,7 @@ imgData: 	.space	MAX_IMG_SIZE
 # -------------------------------- variables for user --------------------------------
 text_to_code: .asciz "0200"
 output_file_name: .asciz "result.bmp"
-pixels_per_stripe: .byte 2
+pixels_per_stripe: .byte 1
 #---------------------------------------------------------------
 	.text
 main:
@@ -161,17 +161,17 @@ main:
 	# jal validate_width
 	# li a7, 1
 	# ecall
-
-	# li a0, 0
+	# la a0, imgInfo
+	# li a2, 0
 	# li a1, 100
 	# jal paint_character
 
-	# li a0, 2
+	# li a2, 2
 	# li a1, 111
 	# jal paint_character
 
-
-	la a0, text_to_code
+	la a0, imgInfo
+	la a1, text_to_code
 	jal go_throuth_text
 
 
@@ -330,8 +330,9 @@ vertical_loop:
 
 # =============================================================
 paint_character:
-	# a0 - input - index of the code value
+	# a0 - file handle
 	# a1 - offest for character
+	# a2 - input - index of the code value
 	# s0 - counter for 11 stripes in char
 	# s1 - read bianry number representating colors
 	# s2 - offset for next stripes
@@ -343,25 +344,18 @@ paint_character:
 
 	# load value from table
 	la t0, codes_table
-	slli a0, a0, 1 # index * 2 (halfword - 2 bytes)
-	add t0, t0, a0
+	slli a2, a2, 1 # index * 2 (halfword - 2 bytes)
+	add t0, t0, a2
 	lh s1, (t0)
-
-	la a0, imgInfo
-
 
 	la s2, pixels_per_stripe
 	lb s2, (s2)
 	add s2, s2, a1
-	# right slient zone
-	# li t0, 10
-	# mul s2, s2, t0
 
 	# loop - read 11 bits
 	li s0, stripes_per_char
 
 bits_loop:
-	# mv t0, a0
 	andi t0, s1, 1
 
 	beqz t0, white_stripe 
@@ -393,24 +387,25 @@ white_stripe:
 
 #================================================================
 go_throuth_text:
-	# a0 - text_to_code
+	# a0 - file handle 
+	# a1 - text_to_code
 	# so - pointer for last character
 	# s1 - len of text_to_code
 	addi sp, sp, -4
 	sw ra, 0(sp)
-	mv t0, a0
+	mv t0, a1
 	la t1, pixels_per_stripe
 	lb, t1, (t1)
 	li t2, 10
 	mul t1, t1, t2
 	mv s9, t1
 text_lopp:
-	lb t1, (a0)
-	addi a0, a0, 1
+	lb t1, (a1)
+	addi a1, a1, 1
 	
 	bnez t1, text_lopp
 	
-	addi s0, a0, -2
+	addi s0, a1, -2
 	# now we have pointer for last character - s0
 
 	# s1 - len of text to code
@@ -430,7 +425,7 @@ read_pairs:
 	mul t2, t2, t3
 	
 	# sum
-	add a0, t1, t2
+	add a2, t1, t2
 
 	la t4, pixels_per_stripe
 	lb t4, (t4)
@@ -438,8 +433,7 @@ read_pairs:
 	mul t4, t4, t5
 	add s9, s9, t4
 	mv a1, s9
-	# li a7, 1
-	# ecall
+	la a0, imgInfo	
 	jal paint_character
 
 	# loop commands
