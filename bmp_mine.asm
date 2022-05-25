@@ -393,12 +393,15 @@ go_throuth_text:
 	# s1 - len of text_to_code
 	addi sp, sp, -4
 	sw ra, 0(sp)
-	mv t0, a1
+	mv t0, a1 # preserve offset
+
 	la t1, pixels_per_stripe
-	lb, t1, (t1)
-	li t2, 10
+	lb, t1, (t1) # t1 - pixel_per_stripe
+
+	li t2, 10 # silent zone - 10 * pixels_per_stripe
 	mul t1, t1, t2
 	mv s9, t1
+	
 text_lopp:
 	lb t1, (a1)
 	addi a1, a1, 1
