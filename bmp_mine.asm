@@ -280,10 +280,6 @@ paint_stripe:
 	#	a1 - offset from the end
 	#return value:
 	#	a0 - preserved
-	#	a1 - offset after paint stripe
-
-	addi sp, sp, -4
-	sw ra, 0(sp)
 
 	la t2, pixels_per_stripe
 	lb t2, (t2)
@@ -330,10 +326,6 @@ vertical_loop:
 	addi a4, a4, 1
 	bgt t2, zero, width_loop
 	
-	mv a1, a4
-	# sub a1, a1, t2
-	lw ra, 0(sp)
-	addi sp, sp, 4
 	jr ra
 
 # =============================================================
