@@ -34,9 +34,9 @@ bmpHeader:	.space	BMPHeader_Size
 imgData: 	.space	MAX_IMG_SIZE
 
 # -------------------------------- variables for user --------------------------------
-text_to_code: .asciz "030200"
+text_to_code: .asciz "59332018"
 output_file_name: .asciz "result.bmp"
-pixels_per_stripe: .byte 2
+pixels_per_stripe: .byte 1
 #---------------------------------------------------------------
 	.text
 main:
@@ -326,6 +326,11 @@ text_lopp:
 
 	li a3, stripes_per_char
 
+	la t1, pixels_per_stripe
+	lb t1, (t1)
+	slli t1, t1, 1
+	add s9, s9, t1
+
 check_sum:
 	# unit part
 	lb t1, (a1)
@@ -351,6 +356,9 @@ check_sum:
 
 	li t1, 103
 	rem a2, a2, t1
+
+	# li a2, 58
+	li a3, 11
 
 	la t4, pixels_per_stripe
 	lb t4, (t4)
@@ -389,6 +397,19 @@ read_pairs:
 	addi s0, s0, -1
 	addi s1, s1, -2
 	bnez s1, read_pairs
+
+		# stop sign
+	la t4, pixels_per_stripe
+	lb t4, (t4)
+	li t5, stripes_per_char
+	mul t4, t4, t5
+	add s9, s9, t4
+	# mv s8, a1
+	mv a1, s9
+	li a3, 11
+	li a2, 100
+	jal paint_character
+	# mv a1, s8
 
 	lw ra, 0(sp)
 	addi sp, sp, 4
