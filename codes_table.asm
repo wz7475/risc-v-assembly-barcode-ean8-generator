@@ -1,7 +1,8 @@
+.eqv start_code_value 105
 
 	.data
 start_symbol: .half 0x69c
-stop_symbol: .half 0x63a
+stop_symbol: .half 0x18eb
 codes_table: .half 
 	0x6cc,
 	0x66c,

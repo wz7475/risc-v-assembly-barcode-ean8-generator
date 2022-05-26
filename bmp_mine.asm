@@ -1,12 +1,3 @@
-#	struct {
-	#		char* filename;		// wskazanie na nazwę pliku
-	#		unsigned char* hdrData; // wskazanie na bufor nagłówka pliku BMP
-	#		unsigned char* imgData; // wskazanie na pierwszy piksel obrazu w pamięci
-	#		int width, height;	// szerokość i wysokość obrazu w pikselach
-	#		int linebytes;		// rozmiar linii (wiersza) obrazu w bajtach
-	#	} imgInfo;
-
-# bmp offsets declarations
 .include "codes_table.asm"
 .eqv ImgInfo_file_name	0
 .eqv ImgInfo_header_bufor 	4
@@ -43,7 +34,7 @@ bmpHeader:	.space	BMPHeader_Size
 imgData: 	.space	MAX_IMG_SIZE
 
 # -------------------------------- variables for user --------------------------------
-text_to_code: .asciz "0200"
+text_to_code: .asciz "030200"
 output_file_name: .asciz "result.bmp"
 pixels_per_stripe: .byte 2
 #---------------------------------------------------------------
@@ -286,7 +277,7 @@ white_stripe:
 go_throuth_text:
 	# a0 - file handle 
 	# a1 - text_to_code
-	# so - pointer for last character
+	# s0 - pointer for last character
 	# s1 - len of text_to_code
 	addi sp, sp, -4
 	sw ra, 0(sp)
@@ -305,12 +296,51 @@ text_lopp:
 	
 	bnez t1, text_lopp
 	
-	addi s0, a1, -2
+	addi a1, a1, -2
+	mv s0, a1
 	# now we have pointer for last character - s0
 
 	# s1 - len of text to code
 	sub s1, s0, t0
 	addi s1, s1, 1
+
+	mv t4, s1 # copy len of string
+	mv t5, t4
+	srli t5, t5, 1
+	li a2, start_code_value
+check_sum:
+	# unit part
+	lb t1, (a1)
+	addi t1, t1, -48
+	
+	# decimal part
+	addi a1, a1, -1
+	lb t2, (a1)
+	addi t2, t2, -48
+	li t3, 10
+	mul t2, t2, t3
+	
+	# sum
+	add t3, t1, t2
+	mul t1, t3, t5
+	add a2, a2, t1
+
+	# loop commands
+	addi t5, t5, -1
+	addi a1, a1, -1
+	addi t4, t4, -2
+	bnez t4, check_sum
+
+	li t1, 103
+	rem a2, a2, t1
+
+	la t4, pixels_per_stripe
+	lb t4, (t4)
+	li t5, stripes_per_char
+	mul t4, t4, t5
+	add s9, s9, t4
+	mv a1, s9
+	jal paint_character
 
 read_pairs:
 	# unit part
@@ -333,7 +363,6 @@ read_pairs:
 	mul t4, t4, t5
 	add s9, s9, t4
 	mv a1, s9
-	la a0, imgInfo	
 	jal paint_character
 
 	# loop commands
