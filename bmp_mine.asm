@@ -305,6 +305,20 @@ text_lopp:
 	sub s1, s0, t0
 	addi s1, s1, 1
 
+
+	# stop sign
+	la t4, pixels_per_stripe
+	lb t4, (t4)
+	li t5, stripes_per_char
+	mul t4, t4, t5
+	add s9, s9, t4
+	mv s8, a1
+	mv a1, s9
+	li a3, 13
+	li a2, 101
+	jal paint_character
+	mv a1, s8
+
 	mv t4, s1 # copy len of string
 	mv t5, t4
 	srli t5, t5, 1
