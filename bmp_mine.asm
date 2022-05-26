@@ -221,6 +221,7 @@ paint_character:
 	# a0 - file handle
 	# a1 - offest for character
 	# a2 - input - index of the code value
+	# a3 - length - of character bianry representation
 	# s0 - counter for 11 stripes in char
 	# s1 - read bianry number representating colors
 	# s2 - offset for next stripes
@@ -240,8 +241,8 @@ paint_character:
 	lb s2, (s2)
 	add s2, s2, a1
 
-	# loop - read 11 bits
-	li s0, stripes_per_char
+	# loop - read 11/13 bits
+	mv s0, a3
 
 bits_loop:
 	andi t0, s1, 1
@@ -308,6 +309,9 @@ text_lopp:
 	mv t5, t4
 	srli t5, t5, 1
 	li a2, start_code_value
+
+	li a3, stripes_per_char
+
 check_sum:
 	# unit part
 	lb t1, (a1)
@@ -340,6 +344,7 @@ check_sum:
 	mul t4, t4, t5
 	add s9, s9, t4
 	mv a1, s9
+	# li a3, stripes_per_char
 	jal paint_character
 
 read_pairs:
@@ -363,6 +368,7 @@ read_pairs:
 	mul t4, t4, t5
 	add s9, s9, t4
 	mv a1, s9
+	# li a3, stripes_per_char
 	jal paint_character
 
 	# loop commands
