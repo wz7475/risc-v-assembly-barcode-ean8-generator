@@ -261,8 +261,10 @@ create_barcode_img:
 	# a1 - text_to_code
 	# s0 - pointer for last character
 	# s1 - len of text_to_code
-	addi sp, sp, -4
-	sw ra, 0(sp)
+	addi sp, sp, -12
+	sw ra, 8(sp)
+	sw s1, 4(sp)
+	sw s2, 0(sp)
 	mv s1, a1 # preserve text to code
 
 	jal validate_width
@@ -270,7 +272,7 @@ create_barcode_img:
 	li a0, 1
 	beqz a2, create_img_exit
 	mv a0, t0
-	mv s9, a2 # preserve offset - indent
+	mv s2, a2 # preserve offset - indent
 
 	jal	generate_bmp
 
@@ -293,7 +295,7 @@ text_lopp:
 
 	# stop sign
 	mv s8, a1
-	mv a1, s9
+	mv a1, s2
 	li a3, 13
 	li a2, 101
 	jal paint_character
@@ -308,7 +310,7 @@ text_lopp:
     la t1, pixels_per_stripe
     lb t1, (t1)
     slli t1, t1, 1
-    add s9, s9, t1
+    add s2, s2, t1
 
 check_sum:
 	# unit part
@@ -343,8 +345,8 @@ check_sum:
 	lb t4, (t4)
 	li t5, stripes_per_char
 	mul t4, t4, t5
-	add s9, s9, t4
-	mv a1, s9
+	add s2, s2, t4
+	mv a1, s2
 	# li a3, stripes_per_char
 	jal paint_character
 
@@ -367,8 +369,8 @@ read_pairs:
 	lb t4, (t4)
 	li t5, stripes_per_char
 	mul t4, t4, t5
-	add s9, s9, t4
-	mv a1, s9
+	add s2, s2, t4
+	mv a1, s2
 	# li a3, stripes_per_char
 	jal paint_character
 
@@ -382,9 +384,9 @@ read_pairs:
 	lb t4, (t4)
 	li t5, stripes_per_char
 	mul t4, t4, t5
-	add s9, s9, t4
+	add s2, s2, t4
 	# mv s8, a1
-	mv a1, s9
+	mv a1, s2
 	li a3, 11
 	li a2, 100
 	jal paint_character
@@ -396,8 +398,10 @@ read_pairs:
 	mv a0, zero # success flag
 
 create_img_exit:
-	lw ra, 0(sp)
-	addi sp, sp, 4
+	lw s2, 0(sp)
+	lw s1, 4(sp)
+	lw ra, 8(sp)
+	addi sp, sp, 12
 	jr ra
 
 # =============================================================
