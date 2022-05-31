@@ -34,44 +34,24 @@ bmpHeader:	.space	BMPHeader_Size
 imgData: 	.space	MAX_IMG_SIZE
 
 # -------------------------------- variables for user --------------------------------
-text_to_code: .asciz "59332018"
+text_to_code: .asciz "12345678"
 output_file_name: .asciz "result.bmp"
-pixels_per_stripe: .byte 1
+pixels_per_stripe: .byte 9
 #---------------------------------------------------------------
 	.text
 main:
 	# wypełnienie deskryptora obrazu
-	la a0, imgInfo  
-	
+	 
+	jal validate_width
+	li a7, 1
+	ecall
 
+	la a0, imgInfo 
 	jal	generate_bmp
-
-	# jal validate_width
-	# li a7, 1
-	# ecall
-	# la a0, imgInfo
-	# li a2, 0
-	# li a1, 100
-	# jal paint_character
-
-	# li a2, 2
-	# li a1, 111
-	# jal paint_character
 
 	la a0, imgInfo
 	la a1, text_to_code
 	jal go_throuth_text
-
-
-
-# paint stripes	
-	# la a0, imgInfo
-	# li a1, 0
-	# jal paint_stripe
-
-	# addi a1, a1, 1
-	# jal paint_stripe
-
 
 # save img
 	la a0, imgInfo
@@ -91,32 +71,44 @@ validate_width:
 	# t4 - string length
 	# validate_width
 	# a0 - result (0 - ok, 1 - too_narrow)
-
-	# calc text_to_code length
-	mv t4, zero
+	mv t4, zero # calc text_to_code length
 	la t0, text_to_code
 calc_string_len:
 	lbu t1, (t0)
 	addi t4, t4, 1
 	addi t0, t0, 1
 	bne t1, zero, calc_string_len
-	addi t4, t4, -1
+	addi t4, t4, 3 # now it is 1 bigger than legth
+	# but we need 2 more than length (start code and control sum)
+	# and later we divide by 2
 
-	la t0, imgInfo
-	lw t1, ImgInfo_width(t0)
+	srli t4, t4, 1
+
 	li t0, stripes_per_char
-	# li t2, pixels_per_stripe
+
 	la t2, pixels_per_stripe
 	lb t2, (t2)
 	mul t3, t0, t2 # t3 = pixels_per_stripe x stripes_per_char
-	mul t3, t3, t4 # t3 = (pixels_per_stripe x stripes_per_char) x text_len
-	sub t1, t1, t3 
-	li a0, 0
-	ble t1, zero, too_narrow_flag
+	mul t3, t3, t4 # t3 = (pixels_per_stripe x stripes_per_char) x (text_len + 2)
+
+	li t0, 13 # wdith of 7 stipes in stop code
+	mul t4, t2, t0 # width of stop code
+
+	add t3, t3, t4 # total width of stripes
+
+	li t1, 768 # width of picture (constant in this task)
+	sub t1, t1, t3
+
+	li t0, 20
+	la t2, pixels_per_stripe
+	lb t2, (t2)
+	mul t0, t0, t2 # required space for 2 silent zones
+	blt t1, t0, too_narrow_flag # negative -> too narrow 
+	srli a0, t1, 2
 	jr ra
 
 too_narrow_flag:
-	li a0, 1
+	li a0, 0
 	jr ra
 	
 # =============================================================
@@ -237,9 +229,10 @@ paint_character:
 	add t0, t0, a2
 	lh s1, (t0)
 
-	la s2, pixels_per_stripe
-	lb s2, (s2)
-	add s2, s2, a1
+	# la s2, pixels_per_stripe
+	# lb s2, (s2)
+	# add s2, s2, a1
+	mv s2, a1
 
 	# loop - read 11/13 bits
 	mv s0, a3
@@ -289,6 +282,7 @@ go_throuth_text:
 
 	li t2, 10 # silent zone - 10 * pixels_per_stripe
 	mul t1, t1, t2
+	li t1, 2 # to delete
 	mv s9, t1
 
 text_lopp:
@@ -305,13 +299,7 @@ text_lopp:
 	sub s1, s0, t0
 	addi s1, s1, 1
 
-
 	# stop sign
-	la t4, pixels_per_stripe
-	lb t4, (t4)
-	li t5, stripes_per_char
-	mul t4, t4, t5
-	add s9, s9, t4
 	mv s8, a1
 	mv a1, s9
 	li a3, 13
@@ -320,16 +308,9 @@ text_lopp:
 	mv a1, s8
 
 	mv t4, s1 # copy len of string
-	mv t5, t4
+	mv t5, s1
 	srli t5, t5, 1
 	li a2, start_code_value
-
-	li a3, stripes_per_char
-
-	la t1, pixels_per_stripe
-	lb t1, (t1)
-	slli t1, t1, 1
-	add s9, s9, t1
 
 check_sum:
 	# unit part
@@ -417,6 +398,7 @@ read_pairs:
 
 # =============================================================
 generate_bmp:
+	# a0 - file handle (preserved)
 	la t0, output_file_name 
 	sw t0, ImgInfo_file_name(a0) # store word
 	la t0, bmpHeader
@@ -438,15 +420,15 @@ generate_bmp:
 	sw t2, (a1)
 	addi a1, a1, 4
 	
-	li t2, 0x900 #2304 = 48 * 48
+	li t2, 0x900
 	sw t2, (a1)
 	addi a1, a1, 4
 	
-	li t2, 0x4d420000 # 1 296 171 008 ??
+	li t2, 0x4d420000 
 	sw t2, (a1)
 	addi a1, a1, 4
 	
-	li t2, 0x00024036 # 147 510
+	li t2, 0x00024036 
 	sw t2, (a1)
 	addi a1, a1, 8
 	
@@ -454,7 +436,7 @@ generate_bmp:
 	sw t2, (a1)
 	addi a1, a1, 4
 	
-	li t2, 0x28 # 40
+	li t2, 0x28
 	sw t2, (a1)
 	addi a1, a1, 4
 	
