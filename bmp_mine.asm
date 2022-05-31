@@ -304,6 +304,12 @@ text_lopp:
 	srli t5, t5, 1
 	li a2, start_code_value
 
+	li a3, stripes_per_char
+    la t1, pixels_per_stripe
+    lb t1, (t1)
+    slli t1, t1, 1
+    add s9, s9, t1
+
 check_sum:
 	# unit part
 	lb t1, (a1)
