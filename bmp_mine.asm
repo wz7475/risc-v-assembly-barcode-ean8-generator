@@ -46,18 +46,9 @@ main:
 	li a7, 1
 	ecall
 
-	la a0, imgInfo 
-	jal	generate_bmp
-
 	la a0, imgInfo
 	la a1, text_to_code
-	jal go_throuth_text
-
-# save img
-	la a0, imgInfo
-	la t0, output_file_name
-	sw t0, ImgInfo_file_name(a0)
-	jal save_bmp
+	jal create_barcode_img
 
 # exit
 	li a7, 10
@@ -268,14 +259,16 @@ white_stripe:
 	
 
 #================================================================
-go_throuth_text:
+create_barcode_img:
 	# a0 - file handle 
 	# a1 - text_to_code
 	# s0 - pointer for last character
 	# s1 - len of text_to_code
 	addi sp, sp, -4
 	sw ra, 0(sp)
-	mv t0, a1 # preserve offset
+	mv s1, a1 # preserve offset
+
+	jal	generate_bmp
 
 	la t1, pixels_per_stripe
 	lb, t1, (t1) # t1 - pixel_per_stripe
@@ -296,7 +289,7 @@ text_lopp:
 	# now we have pointer for last character - s0
 
 	# s1 - len of text to code
-	sub s1, s0, t0
+	sub s1, s0, s1
 	addi s1, s1, 1
 
 	# stop sign
@@ -390,7 +383,11 @@ read_pairs:
 	li a3, 11
 	li a2, 100
 	jal paint_character
-	# mv a1, s8
+	
+	# save img
+	la t0, output_file_name
+	sw t0, ImgInfo_file_name(a0)
+	jal save_bmp
 
 	lw ra, 0(sp)
 	addi sp, sp, 4
@@ -409,52 +406,52 @@ generate_bmp:
 	# mv t0, a0	# preserve imgInfo structure pointer
 		
 	# mv a1, t0
-	mv a1, a0
-	addi a1, a1, 12
+	mv t1, a0
+	addi t1, t1, 12
 	
 	li t3, 768 #width
-	sw t3, (a1)
-	addi a1, a1, 4
+	sw t3, (t1)
+	addi t1, t1, 4
 	
 	li t2, 64 #height
-	sw t2, (a1)
-	addi a1, a1, 4
+	sw t2, (t1)
+	addi t1, t1, 4
 	
 	li t2, 0x900
-	sw t2, (a1)
-	addi a1, a1, 4
+	sw t2, (t1)
+	addi t1, t1, 4
 	
 	li t2, 0x4d420000 
-	sw t2, (a1)
-	addi a1, a1, 4
+	sw t2, (t1)
+	addi t1, t1, 4
 	
 	li t2, 0x00024036 
-	sw t2, (a1)
-	addi a1, a1, 8
+	sw t2, (t1)
+	addi t1, t1, 8
 	
 	li t2, 0x36 # 54 - head size
-	sw t2, (a1)
-	addi a1, a1, 4
+	sw t2, (t1)
+	addi t1, t1, 4
 	
 	li t2, 0x28
-	sw t2, (a1)
-	addi a1, a1, 4
+	sw t2, (t1)
+	addi t1, t1, 4
 	
 	li t2, 0x300 
-	sw t2, (a1)
-	addi a1, a1, 4
+	sw t2, (t1)
+	addi t1, t1, 4
 	
 	li t2, 0x40
-	sw t2, (a1)
-	addi a1, a1, 4
+	sw t2, (t1)
+	addi t1, t1, 4
 	
 	li t2, 0x180001
-	sw t2, (a1)
-	addi a1, a1, 8
+	sw t2, (t1)
+	addi t1, t1, 8
 	
 	li t2, 0x24000
-	sw t2, (a1)
-	addi a1, a1, 20
+	sw t2, (t1)
+	addi t1, t1, 20
 	
 
 
@@ -463,8 +460,8 @@ generate_bmp:
 paint_white:
 	beqz t3, paint_white_exit
 	addi t3, t3, -4
-	sw t2, (a1)
-	addi a1, a1, 4
+	sw t2, (t1)
+	addi t1, t1, 4
 	b paint_white
 
 paint_white_exit:
