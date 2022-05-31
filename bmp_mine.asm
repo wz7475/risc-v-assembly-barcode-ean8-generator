@@ -34,9 +34,9 @@ bmpHeader:	.space	BMPHeader_Size
 imgData: 	.space	MAX_IMG_SIZE
 
 # -------------------------------- variables for user --------------------------------
-text_to_code: .asciz "12345678"
+text_to_code: .asciz "1234"
 output_file_name: .asciz "result.bmp"
-pixels_per_stripe: .byte 9
+pixels_per_stripe: .byte 2
 #---------------------------------------------------------------
 	.text
 main:
@@ -56,12 +56,7 @@ main:
 	
 #================================================================
 validate_width:
-	# t1 - img witdh
-	# t0 - stripes_per_char
-	# t2 - pixels_per_stripe
-	# t4 - string length
-	# validate_width
-	# a0 - result (0 - ok, 1 - too_narrow)
+	# a1 - result (0 - too_narrow, otherwise right indent for img)
 	mv t4, zero # calc text_to_code length
 	la t0, text_to_code
 calc_string_len:
@@ -95,11 +90,11 @@ calc_string_len:
 	lb t2, (t2)
 	mul t0, t0, t2 # required space for 2 silent zones
 	blt t1, t0, too_narrow_flag # negative -> too narrow 
-	srli a0, t1, 2
+	srli a2, t1, 1
 	jr ra
 
 too_narrow_flag:
-	li a0, 0
+	li a2, 0
 	jr ra
 	
 # =============================================================
@@ -266,17 +261,21 @@ create_barcode_img:
 	# s1 - len of text_to_code
 	addi sp, sp, -4
 	sw ra, 0(sp)
-	mv s1, a1 # preserve offset
+	mv s1, a1 # preserve text to code
+
+	jal validate_width
+	beqz a2, create_img_exit
+	mv s9, a2 # preserve offset - indent
 
 	jal	generate_bmp
 
 	la t1, pixels_per_stripe
 	lb, t1, (t1) # t1 - pixel_per_stripe
 
-	li t2, 10 # silent zone - 10 * pixels_per_stripe
-	mul t1, t1, t2
-	li t1, 2 # to delete
-	mv s9, t1
+	# li t2, 10 # silent zone - 10 * pixels_per_stripe
+	# mul t1, t1, t2
+	# li t1, 2 # to delete
+	# mv s9, t1
 
 text_lopp:
 	lb t1, (a1)
@@ -388,7 +387,9 @@ read_pairs:
 	la t0, output_file_name
 	sw t0, ImgInfo_file_name(a0)
 	jal save_bmp
+	mv a0, zero # success flag
 
+create_img_exit:
 	lw ra, 0(sp)
 	addi sp, sp, 4
 	jr ra
