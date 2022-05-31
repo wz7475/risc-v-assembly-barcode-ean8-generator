@@ -43,12 +43,14 @@ main:
 	# wypełnienie deskryptora obrazu
 	 
 	jal validate_width
-	li a7, 1
-	ecall
+
 
 	la a0, imgInfo
 	la a1, text_to_code
 	jal create_barcode_img
+	
+	li a7, 1 # 0 - succes (img generated) otherwise 1 - error code
+	ecall
 
 # exit
 	li a7, 10
@@ -264,18 +266,16 @@ create_barcode_img:
 	mv s1, a1 # preserve text to code
 
 	jal validate_width
+	mv t0, a0
+	li a0, 1
 	beqz a2, create_img_exit
+	mv a0, t0
 	mv s9, a2 # preserve offset - indent
 
 	jal	generate_bmp
 
 	la t1, pixels_per_stripe
 	lb, t1, (t1) # t1 - pixel_per_stripe
-
-	# li t2, 10 # silent zone - 10 * pixels_per_stripe
-	# mul t1, t1, t2
-	# li t1, 2 # to delete
-	# mv s9, t1
 
 text_lopp:
 	lb t1, (a1)
@@ -377,7 +377,7 @@ read_pairs:
 	addi s1, s1, -2
 	bnez s1, read_pairs
 
-		# stop sign
+	# start code
 	la t4, pixels_per_stripe
 	lb t4, (t4)
 	li t5, stripes_per_char
