@@ -168,16 +168,15 @@ width_loop:
 	mv a1, t5	# a1 - img width
 	sub a1, a1, a4	# x = width - offset
 
-vertical_loop:
 	mv t1, a3 # t1 line bytes
-	mul t1, t1, a2  # y = t1 = HEIGHT * linebytes
 
 	add t0, a1, a1	
 	add t0, t0, a1 	# t0 = x * 3
 
-	add t0, t0, t1  # t0 = 3x + y
 
 	add t0, t0, t6 	# t0 is address of the pixel (add img begin ptr)
+vertical_loop:
+	mv s9, t0
 	
 	li t3, 0x00000000
 	#set new color
@@ -187,6 +186,9 @@ vertical_loop:
 	srli t3, t3, 8
 	sb   t3, 2(t0)		#store R
 
+	mv t0, s9
+	add t0, t0, t1 # started at y = 0; add line bites
+	# at each iteration  height++
 	addi a2, a2, -1
 	bge a2, zero, vertical_loop # vertical loop
 
