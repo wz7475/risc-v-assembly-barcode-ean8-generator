@@ -40,10 +40,6 @@ pixels_per_stripe: .byte 2
 #---------------------------------------------------------------
 	.text
 main:
-	# wypełnienie deskryptora obrazu
-	 
-	jal validate_width
-
 
 	la a0, imgInfo
 	la a1, text_to_code
@@ -165,19 +161,23 @@ paint_stripe:
 
 
 width_loop:
-	mv a2, t4	
-	mv a1, t5	# a1 - address of right-most pixel
-	sub a1, a1, a4
+	# load height
+	mv a2, t4	# a2 - img height
+
+	# load vertical address
+	mv a1, t5	# a1 - img width
+	sub a1, a1, a4	# x = width - offset
 
 vertical_loop:
-	mv t1, a3
-	mul t1, t1, a2  # t1 = y * linebytes
-	add t0, a1, a1
-	add t0, t0, a1 	# t0 = x * 3
-	add t0, t0, t1  # t0 is offset of given pixel
+	mv t1, a3 # t1 line bytes
+	mul t1, t1, a2  # y = t1 = HEIGHT * linebytes
 
-	
-	add t0, t0, t6 	# t0 is address of the pixel
+	add t0, a1, a1	
+	add t0, t0, a1 	# t0 = x * 3
+
+	add t0, t0, t1  # t0 = 3x + y
+
+	add t0, t0, t6 	# t0 is address of the pixel (add img begin ptr)
 	
 	li t3, 0x00000000
 	#set new color
