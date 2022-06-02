@@ -159,7 +159,7 @@ paint_stripe:
 
 	mv a4, a1 # save a1 - offset
 
-
+	mv t1, a3 # t1 line bytes
 width_loop:
 	# load height
 	mv a2, t4	# a2 - img height
@@ -168,13 +168,13 @@ width_loop:
 	mv a1, t5	# a1 - img width
 	sub a1, a1, a4	# x = width - offset
 
-	mv t1, a3 # t1 line bytes
+	
 
 	add t0, a1, a1	
 	add t0, t0, a1 	# t0 = x * 3
-
-
 	add t0, t0, t6 	# t0 is address of the pixel (add img begin ptr)
+
+
 vertical_loop:
 	mv s9, t0 # TODO change to non callee save register
 	
