@@ -171,7 +171,10 @@ width_loop:
 
 
 	
-
+	# TODO remove this outside loop
+	# remeber to set address again to first row
+	# probablu befor loop load addres at last row at desired column
+	# in loop set it to first row (inner loop iterations moves that from first to last)
 	add t0, a1, a1	
 	add t0, t0, a1 	# t0 = x * 3
 	add t0, t0, t6 	# t0 is address of the pixel (add img begin ptr)
@@ -196,7 +199,7 @@ vertical_loop:
 
 	addi t2, t2, -1
 	# addi a4, a4, 1
-	addi a1, a1, -1
+	addi a1, a1, -1 # TODO probably need to change -1 to -3
 	bgt t2, zero, width_loop
 	
 	jr ra
