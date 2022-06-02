@@ -160,13 +160,15 @@ paint_stripe:
 	mv a4, a1 # save a1 - offset
 
 	mv t1, a3 # t1 line bytes
+
+	
+	# load vertical address
+	mv a1, t5	# a1 - img width
+	sub a1, a1, a4	# x = width - offset
 width_loop:
 	# load height
 	mv a2, t4	# a2 - img height
 
-	# load vertical address
-	mv a1, t5	# a1 - img width
-	sub a1, a1, a4	# x = width - offset
 
 	
 
@@ -193,7 +195,8 @@ vertical_loop:
 	bge a2, zero, vertical_loop # vertical loop
 
 	addi t2, t2, -1
-	addi a4, a4, 1
+	# addi a4, a4, 1
+	addi a1, a1, -1
 	bgt t2, zero, width_loop
 	
 	jr ra
