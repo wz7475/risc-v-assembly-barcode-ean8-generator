@@ -144,7 +144,7 @@ paint_stripe:
 	#	a1 - offset from the end
 	#return value:
 	#	a0 - preserved
-
+	# TODO refactor registers in whole function
 	la t2, pixels_per_stripe
 	lb t2, (t2)
 
@@ -176,7 +176,7 @@ width_loop:
 
 	add t0, t0, t6 	# t0 is address of the pixel (add img begin ptr)
 vertical_loop:
-	mv s9, t0
+	mv s9, t0 # TODO change to non callee save register
 	
 	li t3, 0x00000000
 	#set new color
