@@ -34,9 +34,14 @@ bmpHeader:	.space	BMPHeader_Size
 imgData: 	.space	MAX_IMG_SIZE
 
 # -------------------------------- variables for user --------------------------------
-text_to_code: .asciz "1234"
-output_file_name: .asciz "result.bmp"
+# too log code case 6x(2x10 + 13 + 11x2x7) = 792 < 768 => return error code 1
+# text_to_code: .asciz "12345671234567"
+# pixels_per_stripe: .byte 6
+# normal code => success => 0 and generated img
+text_to_code: .asciz "12345678"
 pixels_per_stripe: .byte 2
+output_file_name: .asciz "code128.bmp"
+
 #---------------------------------------------------------------
 	.text
 main:
