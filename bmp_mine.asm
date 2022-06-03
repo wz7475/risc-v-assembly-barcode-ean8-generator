@@ -140,54 +140,37 @@ wb_error:
 #================================================================
 paint_stripe:
 	#arguments:
-	#	a0 - address of ImgInfo image descriptor
+	#	a0 - address of ImgInfo image descriptor (preserved)
 	#	a1 - offset from the end
-	#return value:
-	#	a0 - preserved
-	# TODO refactor registers in whole function
 	la t2, pixels_per_stripe
-	lb t2, (t2)
+	lb t2, (t2) # need to preserve
 
 	lw t4, ImgInfo_height(a0)
-	addi t4, t4, -1
+	addi t4, t4, -1 #need to preserve
 
 	lw t5, ImgInfo_width(a0)
 	addi t5, t5, -1
 
 	lw t6, ImgInfo_img_begin_ptr(a0) # address of image data
-	lw a3, ImgInfo_line_bytes(a0)
+	lw t1, ImgInfo_line_bytes(a0)
 
-	mv a4, a1 # save a1 - offset
+	sub t5, t5, a1	# x = width - offset
 
-	mv t1, a3 # t1 line bytes
-
-	
-	# load vertical address
-	mv a1, t5	# a1 - img width
-	sub a1, a1, a4	# x = width - offset
-
-	add t0, a1, a1	
-	add t0, t0, a1 	# t0 = x * 3
+	add t0, t5, t5	
+	add t0, t0, t5 	# t0 = x * 3
 	add t0, t0, t6 	# t0 is address of the pixel (add img begin ptr)
 
-	mul a3, t4, t1 # height * line bytes
-	add a3, a3, t1
-	add t0, t0, a3
+	mul t5, t4, t1 
+	add t5, t5, t1 # height * line bytes
+
+	add t0, t0, t5 # advance address to highest row
 width_loop:
 	# load height
-	mv a2, t4	# a2 - img height
-	sub t0, t0, a3
-
-	
-	# TODO remove this outside loop
-	# remeber to set address again to first row
-	# probably before loop load addres at last row at desired column
-	# in loop set it to first row (inner loop iterations moves that from first to last)
-	
-
+	mv a1, t4	# a1 - img height
+	sub t0, t0, t5 # reset to lowwest row
 
 vertical_loop:
-	mv s9, t0 # TODO change to non callee save register
+	mv t6, t0
 	
 	li t3, 0x00000000
 	#set new color
@@ -197,15 +180,12 @@ vertical_loop:
 	srli t3, t3, 8
 	sb   t3, 2(t0)		#store R
 
-	mv t0, s9
-	add t0, t0, t1 # started at y = 0; add line bites
-	# at each iteration  height++
-	addi a2, a2, -1
-	bge a2, zero, vertical_loop # vertical loop
-
+	mv t0, t6
+	add t0, t0, t1 # move 1px up
+	addi a1, a1, -1
+	bge a1, zero, vertical_loop # vertical loop
 	addi t2, t2, -1
-	# addi a4, a4, 1
-	addi t0, t0, -3 # TODO probably need to change -1 to -3
+	addi t0, t0, -3 # move 1 pixel to left
 	bgt t2, zero, width_loop
 	
 	jr ra
