@@ -361,9 +361,7 @@ read_pairs:
 	jal paint_character
 	
 	# save img
-	la t0, output_file_name
-	sw t0, ImgInfo_file_name(a0)
-	jal save_bmp
+	
 	mv a0, zero # success flag
 
 create_img_exit:
