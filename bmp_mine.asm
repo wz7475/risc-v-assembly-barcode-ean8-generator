@@ -235,7 +235,8 @@ create_barcode_img:
 	# a1 - text_to_code
 	# s0 - pointer for last character
 	# s1 - len of text_to_code
-	addi sp, sp, -12
+	addi sp, sp, -16
+	sw s0, 12(sp)
 	sw ra, 8(sp)
 	sw s1, 4(sp)
 	sw s2, 0(sp)
@@ -372,7 +373,8 @@ create_img_exit:
 	lw s2, 0(sp)
 	lw s1, 4(sp)
 	lw ra, 8(sp)
-	addi sp, sp, 12
+	lw s0, 12(sp)
+	addi sp, sp, 16
 	jr ra
 
 # =============================================================
