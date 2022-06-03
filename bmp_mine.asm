@@ -53,6 +53,11 @@ main:
 	li a7, 1 # 0 - succes (img generated) otherwise 1 - error code
 	ecall
 
+	la a0, imgInfo
+	la t0, output_file_name
+	sw t0, ImgInfo_file_name(a0)
+	jal save_bmp
+
 # exit
 	li a7, 10
 	ecall
@@ -263,12 +268,12 @@ text_lopp:
 	addi s1, s1, 1
 
 	# stop sign
-	mv s8, a1
+	mv a7, a1
 	mv a1, s2
 	li a3, 13
 	li a2, 101
 	jal paint_character
-	mv a1, s8
+	mv a1, a7
 
 	mv t4, s1 # copy len of string
 	mv t5, s1
@@ -354,7 +359,6 @@ read_pairs:
 	li t5, stripes_per_char
 	mul t4, t4, t5
 	add s2, s2, t4
-	# mv s8, a1
 	mv a1, s2
 	li a3, 11
 	li a2, 100
