@@ -137,11 +137,29 @@ wb_error:
 	jr ra
 
 
-#================================================================
-paint_stripe:
-	#arguments:
-	#	a0 - address of ImgInfo image descriptor (preserved)
-	#	a1 - offset from the end
+# =============================================================
+paint_character:
+	# a0 - file handle (preserved)
+	# a1 - offest for character
+	# a2 - input - index of the code value
+	# a3 - length - of character bianry representation (preserved)
+	addi sp, sp -4
+	sw ra, 0(sp)
+
+	la t0, codes_table # load value from table
+	slli a2, a2, 1 # index * 2 (halfword - 2 bytes)
+	add t0, t0, a2
+	lh a4, (t0)
+	mv a5, a1
+	mv a6, a3 # loop - read 11/13 bits
+
+bits_loop:
+	andi t0, a4, 1
+	beqz t0, white_stripe 
+
+black_stripe:
+	mv a1, a5
+	
 	la t2, pixels_per_stripe
 	lb t2, (t2) # need to preserve
 
@@ -187,34 +205,8 @@ vertical_loop:
 	addi t2, t2, -1
 	addi t0, t0, -3 # move 1 pixel to left
 	bgt t2, zero, width_loop
-	
-	jr ra
 
-# =============================================================
-paint_character:
-	# a0 - file handle
-	# a1 - offest for character
-	# a2 - input - index of the code value
-	# a3 - length - of character bianry representation
-	addi sp, sp -4
-	sw ra, 0(sp)
-	# helper register "not spoiled" by invkoed function in loop
-	# a6 - counter for 11 stripes in char
-	# s1 / a4 - read bianry number representating colors
-	# s2 / a5 - offset for next stripes
-	la t0, codes_table # load value from table
-	slli a2, a2, 1 # index * 2 (halfword - 2 bytes)
-	add t0, t0, a2
-	lh a4, (t0)
-	mv a5, a1
-	mv a6, a3 # loop - read 11/13 bits
 
-bits_loop:
-	andi t0, a4, 1
-	beqz t0, white_stripe 
-black_stripe:
-	mv a1, a5
-	jal paint_stripe
 white_stripe:
 	la t0, pixels_per_stripe
 	lb t0, (t0)
