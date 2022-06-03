@@ -196,58 +196,36 @@ paint_character:
 	# a1 - offest for character
 	# a2 - input - index of the code value
 	# a3 - length - of character bianry representation
-	# s0 - counter for 11 stripes in char
-	# s1 - read bianry number representating colors
-	# s2 - offset for next stripes
-	addi sp, sp -16
-	sw ra, 12(sp)
-	sw s2, 8(sp)
-	sw s1, 4(sp)
-	sw s0, 0(sp)
-
-	# load value from table
-	la t0, codes_table
+	addi sp, sp -4
+	sw ra, 0(sp)
+	# helper register "not spoiled" by invkoed function in loop
+	# a6 - counter for 11 stripes in char
+	# s1 / a4 - read bianry number representating colors
+	# s2 / a5 - offset for next stripes
+	la t0, codes_table # load value from table
 	slli a2, a2, 1 # index * 2 (halfword - 2 bytes)
 	add t0, t0, a2
-	lh s1, (t0)
-
-	# la s2, pixels_per_stripe
-	# lb s2, (s2)
-	# add s2, s2, a1
-	mv s2, a1
-
-	# loop - read 11/13 bits
-	mv s0, a3
+	lh a4, (t0)
+	mv a5, a1
+	mv a6, a3 # loop - read 11/13 bits
 
 bits_loop:
-	andi t0, s1, 1
-
+	andi t0, a4, 1
 	beqz t0, white_stripe 
-	
 black_stripe:
-	mv a1, s2
+	mv a1, a5
 	jal paint_stripe
-
-
 white_stripe:
 	la t0, pixels_per_stripe
 	lb t0, (t0)
-	add s2, s2, t0
+	add a5, a5, t0
+	addi a6, a6, -1 # counter--
+	srli a4, a4, 1
+	bnez a6, bits_loop
 
-
-	addi s0, s0, -1 # counter--
-	
-	srli s1, s1, 1
-	bnez s0, bits_loop
-
-
-	lw s0, 0(sp)
-	lw s1, 4(sp)
-	lw s2, 8(sp)
-	lw ra, 12(sp)
-	addi sp, sp, 16
+	lw ra, 0(sp)
+	addi sp, sp, 4
 	jr ra
-	
 
 #================================================================
 create_barcode_img:
