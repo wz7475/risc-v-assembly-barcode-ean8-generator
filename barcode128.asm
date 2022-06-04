@@ -15,15 +15,10 @@
 .eqv system_ReadFile	63
 .eqv system_WriteFile	64
 .eqv system_CloseFile	57
-
-
+.eqv print_int 1
 # "variables"
 .eqv stripes_per_char 11
-
 .eqv BYTES_PER_ROW 192
-
-
-
 imgInfo: .space	24	# deskryptor obrazu
 
 	.align 2		# wyrównanie do granicy słowa
@@ -50,15 +45,16 @@ main:
 	la a1, text_to_code
 	jal create_barcode_img
 	
-	li a7, 1 # 0 - succes (img generated) otherwise 1 - error code
+	li a7, print_int # 0 - succes (img generated) otherwise 1 - error code
 	ecall
+	bnez a0, exit
 
 	la a0, imgInfo
 	la t0, output_file_name
 	sw t0, ImgInfo_file_name(a0)
 	jal save_bmp
 
-# exit
+exit:
 	li a7, 10
 	ecall
 	
