@@ -200,13 +200,10 @@ width_loop:
 vertical_loop:
 	mv t6, t0
 	
-	li t3, 0x00000000
 	#set new color
-	sb   t3,(t0)		#store B
-	srli t3, t3, 8
-	sb   t3, 1(t0)		#store G
-	srli t3, t3, 8
-	sb   t3, 2(t0)		#store R
+	sb   zero, (t0)		#store B
+	sb   zero, 1(t0)		#store G
+	sb   zero, 2(t0)		#store R
 
 	mv t0, t6
 	add t0, t0, t1 # move 1px up
