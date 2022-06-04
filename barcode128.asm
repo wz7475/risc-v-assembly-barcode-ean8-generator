@@ -33,7 +33,7 @@ imgData: 	.space	MAX_IMG_SIZE
 # text_to_code: .asciz "12345671234567"
 # pixels_per_stripe: .byte 6
 # normal code => success => 0 and generated img
-text_to_code: .asciz "12345678"
+text_to_code: .asciz "0012345678"
 pixels_per_stripe: .byte 2
 output_file_name: .asciz "code128.bmp"
 
